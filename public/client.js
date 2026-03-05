@@ -686,20 +686,51 @@ function renderResult(xmlStr) {
 
             // ── Construct dynamic mentor feedback ──
             let diagnosticHtml = '<h4><span class="mic-icon">🧐</span> Live Diagnostic</h4>';
-            let tips = [];
+            let constructivePoints = [];
+            let generalTips = [];
             
-            if (stats.skipped > 0) tips.push(`You skipped <strong>${stats.skipped}</strong> word(s). Try to maintain a steady pace.`);
-            if (stats.tone > 0)    tips.push(`Watch your <strong>tones (声调)</strong> on highlighted orange characters. Focus on the pitch rise/fall.`);
-            if (stats.sound > 0)   tips.push(`Detected <strong>sound inaccuracies</strong> (Initials/Finals) on red words. Tap them to hear the correct way.`);
-            if (stats.extra > 0)   tips.push(`You added some <strong>extra sounds</strong> or repetitions. Try to stay strictly to the text.`);
-            
-            if (tips.length === 0 && pct > 90) {
-                tips.push("Excellent work! Your pronunciation and tones are very natural.");
-            } else if (tips.length === 0) {
-                tips.push("Good attempt. Try to speak more clearly to improve your score.");
+            // Collect up to 4 specific word-level errors for "what exactly could be better"
+            let detailedErrorItems = [];
+            for (let i = 0; i < wordNodes.length; i++) {
+                const content = wordNodes[i].getAttribute('content');
+                const syllNodes = wordNodes[i].getElementsByTagName('syll');
+                for (let s = 0; s < syllNodes.length; s++) {
+                    const phoneNodes = syllNodes[s].getElementsByTagName('phone');
+                    for (let p = 0; p < phoneNodes.length; p++) {
+                        const isYun = parseInt(phoneNodes[p].getAttribute('is_yun') || '0');
+                        const perrMsg = parseInt(phoneNodes[p].getAttribute('perr_msg') || '0');
+                        const dpMsg = parseInt(syllNodes[s].getAttribute('dp_message') || '0');
+                        
+                        if (dpMsg === 16) {
+                            detailedErrorItems.push(`The word <strong>"${content}"</strong> was skipped. Try to read every character.`);
+                            break;
+                        } else if (isYun === 1 && perrMsg === 2) {
+                            detailedErrorItems.push(`The <strong>tone</strong> of <strong>"${content}"</strong> was off. Focus on the pitch rise/fall.`);
+                        } else if (perrMsg !== 0) {
+                            const part = isYun === 0 ? "initial sound (vowel)" : "final sound (rhyme)";
+                            detailedErrorItems.push(`The <strong>${part}</strong> of <strong>"${content}"</strong> was unclear. Tap the word to hear the standard.`);
+                        }
+                    }
+                    if (detailedErrorItems.length >= 4) break;
+                }
+                if (detailedErrorItems.length >= 4) break;
             }
 
-            diagnosticHtml += tips.map(t => `<div class="diagnostic-item"><div class="diagnostic-bullet"></div><div>${t}</div></div>`).join('');
+            if (detailedErrorItems.length > 0) {
+                constructivePoints = detailedErrorItems;
+            }
+
+            if (stats.fluency < 70) generalTips.push("Your reading pace is a bit uneven. Try reading more smoothly.");
+            if (stats.integrity < 80 && stats.skipped > 0) generalTips.push("You missed several characters. Ensure you follow the text closely.");
+            
+            if (constructivePoints.length === 0 && pct > 90) {
+                constructivePoints.push("Excellent! Your pronunciation, initials, and tones are all native-level.");
+            }
+
+            diagnosticHtml += constructivePoints.map(t => `<div class="diagnostic-item"><div class="diagnostic-bullet"></div><div>${t}</div></div>`).join('');
+            if (generalTips.length > 0) {
+                diagnosticHtml += `<div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.05); font-style:italic; opacity:0.8;">${generalTips.join(' ')}</div>`;
+            }
             
             const diagEl = document.getElementById('mentor-diagnostic');
             diagEl.innerHTML = diagnosticHtml;
