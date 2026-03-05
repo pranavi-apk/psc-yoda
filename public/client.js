@@ -909,12 +909,43 @@ window.startMockExam = async (examId) => {
 function loadMockExamPart(index) {
     const part = STATE.mockExam.data.sections[index];
     document.getElementById('exam-session-title').innerText = STATE.mockExam.data.title;
+    document.getElementById('exam-total-secs').innerText = STATE.mockExam.data.sections.length;
     document.getElementById('exam-current-sec').innerText = index + 1;
     document.getElementById('exam-part-title').innerText = part.title;
-    document.getElementById('exam-text-area').innerText = part.content;
+    document.getElementById('exam-part-subtitle').innerText = part.subtitle || '';
+    document.getElementById('exam-instructions').innerText = part.instructions || '';
     
-    // Update active text for eval
-    STATE.currentText = part.content;
+    const textEl = document.getElementById('exam-text-area');
+    textEl.innerHTML = ''; // Clear previous
+
+    if (part.subParts) {
+        // Multi-part content (Section 3)
+        part.subParts.forEach(sp => {
+            const wrap = document.createElement('div');
+            wrap.style.marginBottom = '20px';
+            wrap.style.textAlign = 'left';
+            wrap.innerHTML = `<h4 style="font-size:1.1rem; color:#6c5ce7; margin-bottom:10px;">${sp.type}</h4>
+                              <p style="font-size:1rem; opacity:0.8; margin-bottom:10px;">${sp.instruction}</p>
+                              <div style="font-size:1.2rem; background:#f8f9fa; padding:15px; border-radius:10px;">${sp.examples.join(' | ')}</div>`;
+            textEl.appendChild(wrap);
+        });
+        STATE.currentText = part.instructions; // Fallback for eval
+    } else if (part.topics) {
+        // Topics (Section 5)
+        part.topics.forEach(t => {
+            const wrap = document.createElement('div');
+            wrap.style.marginBottom = '20px';
+            wrap.style.textAlign = 'left';
+            wrap.innerHTML = `<h3 style="color:#2c3e50; margin-bottom:5px;">${t.title}</h3>
+                              <p style="color:var(--gold); margin-bottom:5px;">${t.pinyin}</p>
+                              <div style="font-size:0.9rem; opacity:0.6;">Keywords: ${t.keywords.join(', ')}</div>`;
+            textEl.appendChild(wrap);
+        });
+        STATE.currentText = "命题说话内容由用户自由发挥"; // Fallback
+    } else {
+        textEl.innerText = part.content;
+        STATE.currentText = part.content;
+    }
     
     STATE.mockExam.timeLeft = part.timeLimit;
     updateExamTimerDisplay();
@@ -936,8 +967,17 @@ function startExamTimer() {
 function updateExamTimerDisplay() {
     const mins = Math.floor(STATE.mockExam.timeLeft / 60);
     const secs = STATE.mockExam.timeLeft % 60;
-    document.getElementById('exam-timer').innerText = 
-        `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    const timerEl = document.getElementById('exam-timer');
+    timerEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    
+    // Warning at 30 seconds
+    if (STATE.mockExam.timeLeft <= 30) {
+        timerEl.style.color = '#ff5f56';
+        timerEl.style.boxShadow = '0 0 15px rgba(255, 95, 86, 0.4)';
+    } else {
+        timerEl.style.color = '#ffd700';
+        timerEl.style.boxShadow = 'none';
+    }
 }
 
 window.nextExamPart = () => {

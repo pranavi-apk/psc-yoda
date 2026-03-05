@@ -1450,6 +1450,15 @@ body::after {
     transform: translateY(-5px);
 }
 
+.exam-instructions {
+    background: #fff8e1;
+    border-bottom: 1px solid #ffe082;
+    padding: 0.8rem 1.5rem;
+    font-size: 0.85rem;
+    color: #5d4037;
+    line-height: 1.4;
+}
+
 /* ─── Small Laptop Height Optimization ────────────────── */
 @media (max-height: 820px) {
     .screen { padding-top: 4rem; }
