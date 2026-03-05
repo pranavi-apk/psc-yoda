@@ -193,6 +193,11 @@ window.selectTheme = async (theme) => {
     document.getElementById('record-text').innerText = 'Start Recording';
     isRecording = false;
 
+    // Reset diagnostics
+    document.getElementById('mentor-diagnostic').classList.add('hidden');
+    document.getElementById('mentor-tip').style.display = 'block';
+    document.getElementById('tip-text').innerText = 'Nice work!';
+
     const titles = SECTION_TITLES['lang_du'] || {};
     document.getElementById('exercise-title').innerText = titles[STATE.lang] || '朗读短文';
 
@@ -307,6 +312,10 @@ window.nextSentence = async () => {
     document.getElementById('record-text').innerText = 'Start Recording';
     recordBtn.classList.remove('recording');
     isRecording = false;
+
+    // Reset diagnostics
+    document.getElementById('mentor-diagnostic').classList.add('hidden');
+    document.getElementById('mentor-tip').style.display = 'block';
 
     // ── Page flip animation for storybook ──
     if (STATE.activeSection === 'lang_du') {
