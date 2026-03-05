@@ -1303,22 +1303,25 @@ body::after {
 }
 /* ─── Mock Exam Styles ───────────────────────────────────── */
 .special-btn {
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-    color: white;
+    background: var(--gold-bright);
+    color: #000;
     border: none;
-    padding: 8px 18px;
+    padding: 8px 20px;
     border-radius: 50px;
-    font-weight: 700;
+    font-weight: 800;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(229, 189, 78, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     font-family: var(--font);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 .special-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.5);
-    filter: brightness(1.1);
+    transform: scale(1.05) translateY(-2px);
+    background: #fff;
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.5);
+    color: #000;
 }
 
 .exam-mode {
