@@ -99,7 +99,7 @@
             </div>
 
             <!-- 3. 选择判断 -->
-            <div class="bento-card" onclick="startExercise('xuan_ze')">
+            <div class="bento-card" onclick="goToSection3Parts()">
                 <div class="card-icon">选</div>
                 <h3>选择判断</h3>
                 <p>Identify &amp; correct misused Mandarin words.</p>
@@ -124,6 +124,33 @@
                 <h3>命题说话</h3>
                 <p>3-min free talk on a given topic.</p>
                 <div class="psc-badge">Section 5</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3 PARTS SELECTION -->
+    <section id="section3-parts" class="screen">
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToDashboard()">← Back</button>
+            <h2>选择判断 — Parts</h2>
+            <p>Select a part to practice specific linguistic categories.</p>
+        </div>
+
+        <div class="bento-grid">
+            <div class="bento-card" onclick="startExercise('xuan_ze', 1)">
+                <div class="card-icon">1</div>
+                <h3>Part 1: 词语判断</h3>
+                <p>Correct usage of vocabulary.</p>
+            </div>
+            <div class="bento-card" onclick="startExercise('xuan_ze', 2)">
+                <div class="card-icon">2</div>
+                <h3>Part 2: 量词搭配</h3>
+                <p>Measure words with nouns.</p>
+            </div>
+            <div class="bento-card" onclick="startExercise('xuan_ze', 3)">
+                <div class="card-icon">3</div>
+                <h3>Part 3: 语法判断</h3>
+                <p>Sentence structure and grammar.</p>
             </div>
         </div>
     </section>
@@ -217,6 +244,15 @@
                 <!-- Story title (storybook mode only) -->
                 <div id="story-title-el" class="story-title-el hidden"></div>
                 <div id="target-text" class="zen-text">今天天气很好。</div>
+                
+                <!-- Selective Choice Display (Section 3) -->
+                <div id="selective-choice-area" class="hidden">
+                    <div id="choice-question" class="choice-title"></div>
+                    <div id="options-container" class="options-grid"></div>
+                    <div id="choice-feedback" class="choice-result hidden"></div>
+                    <button id="reveal-btn" class="reveal-btn hidden" onclick="revealAnswer()">Reveal Correct Choice</button>
+                </div>
+
                 <!-- Feedback Overlay (Hidden by default) -->
                 <div id="feedback-overlay" class="feedback-text"></div>
             </div>

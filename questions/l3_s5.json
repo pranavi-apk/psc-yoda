@@ -1,51 +1,198 @@
 [
   {
-    "text": "他讲普通话讲得很好了。",
-    "chars": [
-      {
-        "c": "他",
-        "p": "tā"
-      },
-      {
-        "c": "讲",
-        "p": "jiǎng"
-      },
-      {
-        "c": "普",
-        "p": "pǔ"
-      },
-      {
-        "c": "通",
-        "p": "tōng"
-      },
-      {
-        "c": "话",
-        "p": "huà"
-      },
-      {
-        "c": "讲",
-        "p": "jiǎng"
-      },
-      {
-        "c": "得",
-        "p": "de"
-      },
-      {
-        "c": "很",
-        "p": "hěn"
-      },
-      {
-        "c": "好",
-        "p": "hǎo"
-      },
-      {
-        "c": "了",
-        "p": "le"
-      },
-      {
-        "c": "。",
-        "p": ""
-      }
-    ]
+    "text": "我的愿望",
+    "p": "wǒ de yuàn wàng"
+  },
+  {
+    "text": "我的学习生活",
+    "p": "wǒ de xué xí shēng huó"
+  },
+  {
+    "text": "我尊敬的人",
+    "p": "wǒ zūn jìng de rén"
+  },
+  {
+    "text": "我喜爱的动物",
+    "p": "wǒ xǐ ài de dòng wù"
+  },
+  {
+    "text": "童年的记忆",
+    "p": "tóng nián de jì yì"
+  },
+  {
+    "text": "我喜爱的职业",
+    "p": "wǒ xǐ ài de zhí yè"
+  },
+  {
+    "text": "难忘的旅行",
+    "p": "nán wàng de lǚ xíng"
+  },
+  {
+    "text": "我的朋友",
+    "p": "wǒ de péng you"
+  },
+  {
+    "text": "我喜爱的文学艺术",
+    "p": "wǒ xǐ ài de wén xué yì shù"
+  },
+  {
+    "text": "谈谈卫生健康",
+    "p": "tán tán wèi shēng jiàn kāng"
+  },
+  {
+    "text": "我的业余生活",
+    "p": "wǒ de yè yú shēng huó"
+  },
+  {
+    "text": "我喜欢的季节",
+    "p": "wǒ xǐ huān de jì jié"
+  },
+  {
+    "text": "学习普通话的体会",
+    "p": "xué xí pǔ tōng huà de tǐ huì"
+  },
+  {
+    "text": "谈谈服饰",
+    "p": "tán tán fú shì"
+  },
+  {
+    "text": "我的假日生活",
+    "p": "wǒ de jià rì shēng huó"
+  },
+  {
+    "text": "我的成长之路",
+    "p": "wǒ de chéng zhǎng zhī lù"
+  },
+  {
+    "text": "谈谈科技发展与社会生活",
+    "p": "tán tán kē jì fā zhǎn yǔ shè huì shēng huó"
+  },
+  {
+    "text": "我知道的风俗",
+    "p": "wǒ zhī dào de fēng sú"
+  },
+  {
+    "text": "我和体育",
+    "p": "wǒ hé tǐ yù"
+  },
+  {
+    "text": "我的家乡",
+    "p": "wǒ de jiā xiāng"
+  },
+  {
+    "text": "谈谈美食",
+    "p": "tán tán měi shí"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我所在的集体",
+    "p": "wǒ suǒ zài de jí tǐ"
+  },
+  {
+    "text": "谈谈社会公德",
+    "p": "tán tán shè huì gōng dé"
+  },
+  {
+    "text": "谈谈个人修养",
+    "p": "tán tán gè rén xiū yǎng"
+  },
+  {
+    "text": "我喜欢的明星",
+    "p": "wǒ xǐ huān de míng xīng"
+  },
+  {
+    "text": "我喜爱的书刊",
+    "p": "wǒ xǐ ài de shū kān"
+  },
+  {
+    "text": "谈谈对环境保护的认识",
+    "p": "tán tán duì huán jìng bǎo hù de rèn shi"
+  },
+  {
+    "text": "我向往的地方",
+    "p": "wǒ xiàng wǎng de dì fang"
+  },
+  {
+    "text": "购物感受",
+    "p": "gòu wù gǎn shòu"
+  },
+  {
+    "text": "我喜欢的艺术形式",
+    "p": "wǒ xǐ huān de yì shù xíng shì"
+  },
+  {
+    "text": "谈谈卫生与健康",
+    "p": "tán tán wèi shēng yǔ jiàn kāng"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的季节",
+    "p": "wǒ xǐ huān de jì jié"
+  },
+  {
+    "text": "学习普通话的经历",
+    "p": "xué xí pǔ tōng huà de jīng lì"
+  },
+  {
+    "text": "谈谈邻里关系",
+    "p": "tán tán lín lǐ guān xì"
+  },
+  {
+    "text": "我喜欢的植物",
+    "p": "wǒ xǐ huān de zhí wù"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
   }
 ]

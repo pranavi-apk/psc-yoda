@@ -1,0 +1,403 @@
+[
+  {
+    "text": "我最尊敬的人",
+    "p": "wǒ zuì zūn jìng de rén"
+  },
+  {
+    "text": "我的学习经历",
+    "p": "wǒ de xué xí jīng lì"
+  },
+  {
+    "text": "难忘的一次旅行",
+    "p": "nán wàng de yī cì lǚ xíng"
+  },
+  {
+    "text": "我喜欢的体育运动",
+    "p": "wǒ xǐ huān de tǐ yù yùn dòng"
+  },
+  {
+    "text": "谈谈社会公德",
+    "p": "tán tán shè huì gōng dé"
+  },
+  {
+    "text": "我心中的理想职业",
+    "p": "wǒ xīn zhōng de lǐ xiǎng zhí yè"
+  },
+  {
+    "text": "童年的回忆",
+    "p": "tóng nián de huí yì"
+  },
+  {
+    "text": "我喜欢的电影",
+    "p": "wǒ xǐ huān de diàn yǐng"
+  },
+  {
+    "text": "谈谈卫生与健康",
+    "p": "tán tán wèi shēng yǔ jiàn kāng"
+  },
+  {
+    "text": "我喜欢的季节",
+    "p": "wǒ xǐ huān de jì jié"
+  },
+  {
+    "text": "我的朋友",
+    "p": "wǒ de péng you"
+  },
+  {
+    "text": "谈谈科技发展",
+    "p": "tán tán kē jì fā zhǎn"
+  },
+  {
+    "text": "我喜欢的音乐",
+    "p": "wǒ xǐ huān de yīn yuè"
+  },
+  {
+    "text": "难忘的一位老师",
+    "p": "nán wàng de yī wèi lǎo shī"
+  },
+  {
+    "text": "谈谈环境保护",
+    "p": "tán tán huán jìng bǎo hù"
+  },
+  {
+    "text": "我喜欢的节日",
+    "p": "wǒ xǐ huān de jié rì"
+  },
+  {
+    "text": "我的家乡",
+    "p": "wǒ de jiā xiāng"
+  },
+  {
+    "text": "谈谈网络生活",
+    "p": "tán tán wǎng luò shēng huó"
+  },
+  {
+    "text": "我喜欢的书籍",
+    "p": "wǒ xǐ huān de shū jí"
+  },
+  {
+    "text": "谈谈人生理想",
+    "p": "tán tán rén shēng lǐ xiǎng"
+  },
+  {
+    "text": "我喜欢的动物",
+    "p": "wǒ xǐ huān de dòng wù"
+  },
+  {
+    "text": "谈谈家庭教育",
+    "p": "tán tán jiā tíng jiào yù"
+  },
+  {
+    "text": "我喜欢的电视节目",
+    "p": "wǒ xǐ huān de diàn shì jié mù"
+  },
+  {
+    "text": "谈谈城市生活",
+    "p": "tán tán chéng shì shēng huó"
+  },
+  {
+    "text": "我的业余爱好",
+    "p": "wǒ de yè yú ài hào"
+  },
+  {
+    "text": "谈谈诚信",
+    "p": "tán tán chéng xìn"
+  },
+  {
+    "text": "我喜欢的植物",
+    "p": "wǒ xǐ huān de zhí wù"
+  },
+  {
+    "text": "谈谈代沟",
+    "p": "tán tán dài gōu"
+  },
+  {
+    "text": "我喜欢的明星",
+    "p": "wǒ xǐ huān de míng xīng"
+  },
+  {
+    "text": "谈谈友谊",
+    "p": "tán tán yǒu yì"
+  },
+  {
+    "text": "我喜欢的颜色",
+    "p": "wǒ xǐ huān de yán sè"
+  },
+  {
+    "text": "谈谈压力与释放",
+    "p": "tán tán yā lì yǔ shì fàng"
+  },
+  {
+    "text": "我喜欢的餐厅",
+    "p": "wǒ xǐ huān de cān tīng"
+  },
+  {
+    "text": "谈谈团队合作",
+    "p": "tán tán tuán duì hé zuò"
+  },
+  {
+    "text": "我喜欢的运动",
+    "p": "wǒ xǐ huān de yùn dòng"
+  },
+  {
+    "text": "谈谈消费观念",
+    "p": "tán tán xiāo fèi guān niàn"
+  },
+  {
+    "text": "我喜欢的城市",
+    "p": "wǒ xǐ huān de chéng shì"
+  },
+  {
+    "text": "谈谈时间管理",
+    "p": "tán tán shí jiān guǎn lǐ"
+  },
+  {
+    "text": "我喜欢的服装风格",
+    "p": "wǒ xǐ huān de fú zhuāng fēng gé"
+  },
+  {
+    "text": "谈谈学习方法",
+    "p": "tán tán xué xí fāng fǎ"
+  },
+  {
+    "text": "我喜欢的艺术家",
+    "p": "wǒ xǐ huān de yì shù jiā"
+  },
+  {
+    "text": "谈谈幸福是什么",
+    "p": "tán tán xìng fú shì shén me"
+  },
+  {
+    "text": "我喜欢的天气",
+    "p": "wǒ xǐ huān de tiān qì"
+  },
+  {
+    "text": "谈谈责任",
+    "p": "tán tán zé rèn"
+  },
+  {
+    "text": "我喜欢的传统节日",
+    "p": "wǒ xǐ huān de chuán tǒng jié rì"
+  },
+  {
+    "text": "谈谈沟通的艺术",
+    "p": "tán tán gōu tōng de yì shù"
+  },
+  {
+    "text": "我喜欢的文学作品",
+    "p": "wǒ xǐ huān de wén xué zuò pǐn"
+  },
+  {
+    "text": "谈谈成长中的挫折",
+    "p": "tán tán chéng zhǎng zhōng de cuò zhé"
+  },
+  {
+    "text": "我喜欢的旅游景点",
+    "p": "wǒ xǐ huān de lǚ yóu jǐng diǎn"
+  },
+  {
+    "text": "谈谈未来规划",
+    "p": "tán tán wèi lái guī huà"
+  },
+  {
+    "text": "谈谈我的一次难忘经历",
+    "p": "tán tán wǒ de yī cì nán wàng jīng lì"
+  },
+  {
+    "text": "我眼中的成功",
+    "p": "wǒ yǎn zhōng de chéng gōng"
+  },
+  {
+    "text": "谈谈自律的重要性",
+    "p": "tán tán zì lǜ de zhòng yào xìng"
+  },
+  {
+    "text": "我喜欢的沟通方式",
+    "p": "wǒ xǐ huān de gōu tōng fāng shì"
+  },
+  {
+    "text": "谈谈如何处理人际关系",
+    "p": "tán tán rú hé chǔ lǐ rén jì guān xì"
+  },
+  {
+    "text": "我印象最深的一堂课",
+    "p": "wǒ yìn xiàng zuì shēn de yī táng kè"
+  },
+  {
+    "text": "谈谈运动的好处",
+    "p": "tán tán yùn dòng de hǎo chù"
+  },
+  {
+    "text": "我喜欢的休闲方式",
+    "p": "wǒ xǐ huān de xiū xián fāng shì"
+  },
+  {
+    "text": "谈谈如何面对压力",
+    "p": "tán tán rú hé miàn duì yā lì"
+  },
+  {
+    "text": "我心中的英雄",
+    "p": "wǒ xīn zhōng de yīng xióng"
+  },
+  {
+    "text": "谈谈礼貌的重要性",
+    "p": "tán tán lǐ mào de zhòng yào xìng"
+  },
+  {
+    "text": "我喜欢的早餐",
+    "p": "wǒ xǐ huān de zǎo cān"
+  },
+  {
+    "text": "谈谈城市与乡村的差异",
+    "p": "tán tán chéng shì yǔ xiāng cūn de chà yì"
+  },
+  {
+    "text": "我的一次志愿者经历",
+    "p": "wǒ de yī cì zhì yuàn zhě jīng lì"
+  },
+  {
+    "text": "谈谈手机对生活的影响",
+    "p": "tán tán shǒu jī duì shēng huó de yǐng xiǎng"
+  },
+  {
+    "text": "我喜欢的季节",
+    "p": "wǒ xǐ huān de jì jié"
+  },
+  {
+    "text": "谈谈如何培养好习惯",
+    "p": "tán tán rú hé péi yǎng hǎo xí guàn"
+  },
+  {
+    "text": "我眼中的幸福",
+    "p": "wǒ yǎn zhōng de xìng fú"
+  },
+  {
+    "text": "谈谈旅游的收获",
+    "p": "tán tán lǚ yóu de shōu huò"
+  },
+  {
+    "text": "我喜欢的老师类型",
+    "p": "wǒ xǐ huān de lǎo shī lèi xíng"
+  },
+  {
+    "text": "谈谈如何节约时间",
+    "p": "tán tán rú hé jié yuē shí jiān"
+  },
+  {
+    "text": "我的一次购物经历",
+    "p": "wǒ de yī cì gòu wù jīng lì"
+  },
+  {
+    "text": "谈谈如何保持健康",
+    "p": "tán tán rú hé bǎo chí jiàn kāng"
+  },
+  {
+    "text": "我喜欢的电影类型",
+    "p": "wǒ xǐ huān de diàn yǐng lèi xíng"
+  },
+  {
+    "text": "谈谈如何与家人相处",
+    "p": "tán tán rú hé yǔ jiā rén xiāng chǔ"
+  },
+  {
+    "text": "我理想中的房子",
+    "p": "wǒ lǐ xiǎng zhōng de fáng zi"
+  },
+  {
+    "text": "谈谈学习外语的体会",
+    "p": "tán tán xué xí wài yǔ de tǐ huì"
+  },
+  {
+    "text": "我喜欢的中国传统节日",
+    "p": "wǒ xǐ huān de zhōng guó chuán tǒng jié rì"
+  },
+  {
+    "text": "谈谈如何面对失败",
+    "p": "tán tán rú hé miàn duì shī bài"
+  },
+  {
+    "text": "我喜欢的音乐类型",
+    "p": "wǒ xǐ huān de yīn yuè lèi xíng"
+  },
+  {
+    "text": "谈谈读书的乐趣",
+    "p": "tán tán dú shū de lè qù"
+  },
+  {
+    "text": "我的一次成功体验",
+    "p": "wǒ de yī cì chéng gōng tǐ yàn"
+  },
+  {
+    "text": "谈谈如何调节情绪",
+    "p": "tán tán rú hé tiáo jié qíng xù"
+  },
+  {
+    "text": "我喜欢的动物",
+    "p": "wǒ xǐ huān de dòng wù"
+  },
+  {
+    "text": "谈谈如何做到诚实守信",
+    "p": "tán tán rú hé zuò dào chéng shí shǒu xìn"
+  },
+  {
+    "text": "我喜欢的运动明星",
+    "p": "wǒ xǐ huān de yùn dòng míng xīng"
+  },
+  {
+    "text": "谈谈如何与人合作",
+    "p": "tán tán rú hé yǔ rén hé zuò"
+  },
+  {
+    "text": "我眼中的时尚",
+    "p": "wǒ yǎn zhōng de shí shàng"
+  },
+  {
+    "text": "谈谈如何理财",
+    "p": "tán tán rú hé lǐ cái"
+  },
+  {
+    "text": "我喜欢的早餐习惯",
+    "p": "wǒ xǐ huān de zǎo cān xí guàn"
+  },
+  {
+    "text": "谈谈如何保护环境",
+    "p": "tán tán rú hé bǎo hù huán jìng"
+  },
+  {
+    "text": "我的一次助人经历",
+    "p": "wǒ de yī cì zhù rén jīng lì"
+  },
+  {
+    "text": "谈谈如何面对选择",
+    "p": "tán tán rú hé miàn duì xuǎn zé"
+  },
+  {
+    "text": "我喜欢的电视节目类型",
+    "p": "wǒ xǐ huān de diàn shì jié mù lèi xíng"
+  },
+  {
+    "text": "谈谈如何培养自信心",
+    "p": "tán tán rú hé péi yǎng zì xìn xīn"
+  },
+  {
+    "text": "我喜欢的季节",
+    "p": "wǒ xǐ huān de jì jié"
+  },
+  {
+    "text": "谈谈如何与朋友相处",
+    "p": "tán tán rú hé yǔ péng you xiāng chǔ"
+  },
+  {
+    "text": "我理想中的工作环境",
+    "p": "wǒ lǐ xiǎng zhōng de gōng zuò huán jìng"
+  },
+  {
+    "text": "谈谈如何保持积极心态",
+    "p": "tán tán rú hé bǎo chí jī jí xīn tài"
+  },
+  {
+    "text": "我喜欢的中国传统艺术",
+    "p": "wǒ xǐ huān de zhōng guó chuán tǒng yì shù"
+  }
+
+]

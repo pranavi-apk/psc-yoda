@@ -259,9 +259,18 @@ app.post('/api/generate-content', async (req, res) => {
         const sectionIdx = section === 'lang_du' ? 4 : (section === 'dan_yin_jie' ? 1 : (section === 'duo_yin_jie' ? 2 : (section === 'xuan_ze' ? 3 : 5)));
         let allStaticItems = [];
         if (fs.existsSync(QUESTIONS_DIR)) {
-            const files = fs.readdirSync(QUESTIONS_DIR).filter(f => 
-                f.endsWith('.json') && (f.startsWith(`l${grade}_s${sectionIdx}`) || f === `s${sectionIdx}.json`)
-            );
+            const files = fs.readdirSync(QUESTIONS_DIR).filter(f => {
+                if (!f.endsWith('.json')) return false;
+                
+                // If part is specified (Section 3), strictly match the part file
+                if (section === 'xuan_ze' && req.body.part) {
+                    return f === `l${grade}_s3_p${req.body.part}.json`;
+                }
+                
+                // Default: match by grade and section
+                return f.startsWith(`l${grade}_s${sectionIdx}`) || f === `s${sectionIdx}.json`;
+            });
+            
             files.forEach(f => {
                 try {
                     const content = fs.readFileSync(path.join(QUESTIONS_DIR, f), 'utf-8');
@@ -354,6 +363,16 @@ app.get('/api/pixabay', (req, res) => {
         });
     }).on('error', (e) => res.status(500).json({ error: e.message }));
 });
+app.get('/api/mock-exams', (req, res) => {
+    const dir = path.join(__dirname, 'mock_exams');
+    if (!fs.existsSync(dir)) return res.json([]);
+    const files = fs.readdirSync(dir)
+        .filter(f => f.endsWith('.json'))
+        .map(f => f.replace('.json', ''))
+        .sort((a, b) => parseInt(a) - parseInt(b));
+    res.json(files);
+});
+
 app.get('/api/mock-exam/:id', (req, res) => {
     try {
         const examPath = path.join(__dirname, 'mock_exams', `${req.params.id}.json`);

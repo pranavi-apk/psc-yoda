@@ -15,6 +15,10 @@ const STATE = {
     pageNum: 1,            // storybook page counter
     selectedTheme: '',     // Current story theme
     isGenerating: false,   // Lock to prevent glitches
+    currentSection3Part: null, // For Section 3 (1, 2, or 3)
+    currentOptions: [],        // For Section 3
+    correctAnswer: null,      // For Section 3
+    selectedOptionIndex: null, // For Section 3
     mockExam: {
         timerId: null,
         data: null,
@@ -33,7 +37,8 @@ const screens = {
     report:          document.getElementById('report'),
     mockExamDashboard: document.getElementById('mock-exam-dashboard'),
     mockExamInstructions: document.getElementById('mock-exam-instructions'),
-    mockExamSession:   document.getElementById('mock-exam-session')
+    mockExamSession:   document.getElementById('mock-exam-session'),
+    section3Parts:      document.getElementById('section3-parts')
 };
 
 
@@ -165,8 +170,14 @@ window.goToDashboard = () => {
     stopRecording();
     STATE.selectedTheme = '';
     STATE.activeSection = null;
+    STATE.currentSection3Part = null;
     deactivateStorybook();
     switchScreen('dashboard');
+};
+
+window.goToSection3Parts = () => {
+    stopRecording();
+    switchScreen('section3Parts');
 };
 
 window.closeModal = () => yodaModal.classList.remove('show');
@@ -182,8 +193,9 @@ function updateUIText() {
 
 // ─── Exercise Start ───────────────────────────────────────────────────────
 
-window.startExercise = async (section) => {
+window.startExercise = async (section, part = null) => {
     STATE.activeSection = section;
+    STATE.currentSection3Part = part;
 
     // ── For "lang_du" (Story), show theme selection first ──
     if (section === 'lang_du') {
@@ -256,13 +268,17 @@ async function generateNextContent(section, previousText) {
                 section: sec,
                 grade: STATE.grade,
                 previousText: previousText || '',
-                theme: STATE.selectedTheme // Pass the theme if set
+                theme: STATE.selectedTheme,
+                part: STATE.currentSection3Part
             })
         });
         const data = await res.json();
         if (data.text) {
             STATE.currentText  = data.text;
             STATE.currentChars = data.chars || [];
+            STATE.currentOptions = data.options || [];
+            STATE.correctAnswer = data.correct || null;
+            STATE.selectedOptionIndex = null;
 
             // ── Storybook: title + Pixabay image ──
             if (sec === 'lang_du') {
@@ -298,6 +314,22 @@ async function generateNextContent(section, previousText) {
 // appears as a phrase under the word, not split per character.
 
 function renderPromptWithPinyin(chars, plainText) {
+    const displayEl = document.getElementById('target-text');
+    const choiceArea = document.getElementById('selective-choice-area');
+    
+    // Reset Visibility
+    displayEl.classList.remove('hidden');
+    choiceArea.classList.add('hidden');
+    recordBtn.classList.remove('hidden');
+    recordBtn.style.opacity = '1';
+    recordBtn.style.pointerEvents = 'auto';
+
+    if (STATE.activeSection === 'xuan_ze' && STATE.currentOptions.length > 0) {
+        renderSection3Choice();
+        return;
+    }
+
+    displayEl.innerHTML = '';
     const showPinyin = STATE.lang !== 'cn';
 
     if (!chars || chars.length === 0 || !showPinyin) {
@@ -895,10 +927,33 @@ if (document.getElementById('exam-record-btn')) {
 
 // ─── Mock Exam Logic ──────────────────────────────────────────────────────
 
-window.goToMockExamDashboard = () => {
+window.goToMockExamDashboard = async () => {
     stopRecording();
     clearInterval(STATE.mockExam.timerId);
     switchScreen('mockExamDashboard');
+
+    // Fetch list of exams
+    try {
+        const res = await fetch('/api/mock-exams');
+        const examIds = await res.json();
+        const listEl = document.getElementById('mock-exam-list');
+        listEl.innerHTML = ''; // Clear
+
+        examIds.forEach(id => {
+            const card = document.createElement('div');
+            card.className = 'bento-card special';
+            card.onclick = () => startMockExam(id);
+            card.innerHTML = `
+                <div class="card-icon">📄</div>
+                <h3>PSC Mock Exam ${id.padStart(2, '0')}</h3>
+                <p>Official 5-section timed simulation.</p>
+                <div class="psc-badge">Official</div>
+            `;
+            listEl.appendChild(card);
+        });
+    } catch (e) {
+        console.error('Failed to list exams:', e);
+    }
 };
 
 window.startMockExam = async (examId) => {
@@ -1025,3 +1080,81 @@ window.exitExam = () => {
     }
 }
 
+// ─── Section 3 Specialized Logic ──────────────────────────────────────────
+
+function renderSection3Choice() {
+    const displayEl    = document.getElementById('target-text');
+    const choiceArea   = document.getElementById('selective-choice-area');
+    const qEl          = document.getElementById('choice-question');
+    const optContainer = document.getElementById('options-container');
+    const feedbackEl   = document.getElementById('choice-feedback');
+    const revealBtn    = document.getElementById('reveal-btn');
+
+    displayEl.classList.add('hidden');
+    choiceArea.classList.remove('hidden');
+
+    // Lock record button until student reveals the answer
+    recordBtn.style.opacity = '0.3';
+    recordBtn.style.pointerEvents = 'none';
+
+    const partLabel = STATE.currentSection3Part
+        ? `Part ${STATE.currentSection3Part} — Which is correct?`
+        : 'Which is correct?';
+    qEl.innerText = partLabel;
+
+    optContainer.innerHTML = '';
+    feedbackEl.classList.add('hidden');
+    feedbackEl.className = 'choice-result hidden';
+    revealBtn.classList.add('hidden');
+
+    STATE.currentOptions.forEach((opt, idx) => {
+        const div = document.createElement('div');
+        div.className = 'option-item';
+        div.innerText = opt;
+        div.onclick = () => window.handleOptionSelect(idx);
+        optContainer.appendChild(div);
+    });
+}
+
+window.handleOptionSelect = (idx) => {
+    STATE.selectedOptionIndex = idx;
+    document.querySelectorAll('.option-item').forEach((it, i) => {
+        it.classList.toggle('selected', i === idx);
+    });
+    document.getElementById('reveal-btn').classList.remove('hidden');
+};
+
+window.revealAnswer = () => {
+    const items        = document.querySelectorAll('.option-item');
+    const feedbackEl   = document.getElementById('choice-feedback');
+    const revealBtn    = document.getElementById('reveal-btn');
+    const selectedText = STATE.currentOptions[STATE.selectedOptionIndex];
+    const isCorrect    = selectedText === STATE.correctAnswer;
+
+    items.forEach(it => {
+        if (it.innerText === STATE.correctAnswer) {
+            it.classList.add('correct');
+        } else if (it.classList.contains('selected') && !isCorrect) {
+            it.classList.add('incorrect');
+        }
+        it.style.pointerEvents = 'none';
+    });
+
+    feedbackEl.classList.remove('hidden');
+    if (isCorrect) {
+        feedbackEl.innerText = '✨ Correct! Now say it aloud.';
+        feedbackEl.className = 'choice-result success';
+    } else {
+        feedbackEl.innerText = `Incorrect. The right answer is「${STATE.correctAnswer}」. Now practice saying it.`;
+        feedbackEl.className = 'choice-result error';
+    }
+    revealBtn.classList.add('hidden');
+
+    // Unlock the record button
+    recordBtn.style.opacity = '1';
+    recordBtn.style.pointerEvents = 'auto';
+
+    // Update target text so speech evaluation scores the CORRECT answer
+    STATE.currentText  = STATE.correctAnswer;
+    STATE.currentChars = STATE.correctAnswer.split('').map(c => ({ c, p: '' }));
+};
