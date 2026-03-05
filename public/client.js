@@ -32,6 +32,7 @@ const screens = {
     exercise:        document.getElementById('exercise'),
     report:          document.getElementById('report'),
     mockExamDashboard: document.getElementById('mock-exam-dashboard'),
+    mockExamInstructions: document.getElementById('mock-exam-instructions'),
     mockExamSession:   document.getElementById('mock-exam-session')
 };
 
@@ -896,15 +897,26 @@ window.startMockExam = async (examId) => {
         
         STATE.mockExam.data = examData;
         STATE.mockExam.currentPartIndex = 0;
-        STATE.activeSection = 'mock'; // Marker for exam mode
+        STATE.activeSection = 'mock'; 
+
+        // Populate instruction screen
+        document.getElementById('ins-exam-title').innerText = examData.title;
+        document.getElementById('ins-exam-desc').innerText = examData.description || "Official Putonghua Proficiency Test simulation.";
+        document.getElementById('ins-exam-time').innerText = Math.floor((examData.totalTime || 900) / 60) + " mins";
+        document.getElementById('ins-exam-score').innerText = (examData.totalScore || 100) + " pts";
         
-        loadMockExamPart(0);
-        switchScreen('mockExamSession');
+        switchScreen('mockExamInstructions');
     } catch (e) {
         console.error(e);
         alert('Failed to load mock exam.');
     }
 };
+
+window.beginMockExam = () => {
+    loadMockExamPart(0);
+    switchScreen('mockExamSession');
+};
+
 
 function loadMockExamPart(index) {
     const part = STATE.mockExam.data.sections[index];
@@ -968,6 +980,8 @@ function updateExamTimerDisplay() {
     const mins = Math.floor(STATE.mockExam.timeLeft / 60);
     const secs = STATE.mockExam.timeLeft % 60;
     const timerEl = document.getElementById('exam-timer');
+    if (!timerEl) return;
+
     timerEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     
     // Warning at 30 seconds

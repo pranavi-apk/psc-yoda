@@ -331,6 +331,40 @@
         </div>
     </section>
 
+    <!-- MOCK EXAM INSTRUCTIONS -->
+    <section id="mock-exam-instructions" class="screen">
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToMockExamDashboard()">← Back</button>
+            <h2 id="ins-exam-title">Exam Instructions</h2>
+            <p>Please read carefully before starting the test.</p>
+        </div>
+
+        <div class="exam-card-large">
+            <div class="exam-info-header">
+                <div class="info-item">
+                    <span class="label">Total Duration</span>
+                    <span id="ins-exam-time" class="val">-- mins</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Total Score</span>
+                    <span id="ins-exam-score" class="val">-- pts</span>
+                </div>
+            </div>
+
+            <div class="exam-description">
+                <p id="ins-exam-desc">Loading exam details...</p>
+                <ul class="official-rules">
+                    <li>This test contains 5 sections.</li>
+                    <li>The timer will start as soon as you click "Begin Exam".</li>
+                    <li>Ensure your microphone is connected and working.</li>
+                    <li>Speak clearly and maintain a steady pace.</li>
+                </ul>
+            </div>
+
+            <button class="begin-exam-btn" onclick="beginMockExam()">Begin Exam ↵</button>
+        </div>
+    </section>
+
     <!-- MOCK EXAM SESSION (Clean Exam Style) -->
     <section id="mock-exam-session" class="screen exam-mode">
         <div class="exam-header">
