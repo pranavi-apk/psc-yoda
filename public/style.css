@@ -39,8 +39,8 @@ body {
     background: var(--bg);
     color: var(--text);
     font-family: var(--font);
-    min-height: 100vh;
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* ─── Animated Starfield Background ─────────────────────── */
@@ -147,9 +147,10 @@ body::after {
     display: none;
     position: relative;
     z-index: 1;
-    min-height: 100vh;
-    padding: 5.5rem 2rem 3rem;
+    height: 100vh;
+    padding: 5rem 1.5rem 1rem;
     animation: screenIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    overflow: hidden;
 }
 
 .screen.active { display: flex; flex-direction: column; }
@@ -592,9 +593,9 @@ body::after {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0 0 1.25rem;
+    padding: 0 0 0.75rem;
     border-bottom: 1px solid var(--card-border);
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.75rem;
 }
 
 #theme-selection h2 {
@@ -683,10 +684,10 @@ body::after {
 }
 
 .zen-text {
-    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
     font-family: var(--font-cn);
     font-weight: 400;
-    line-height: 1.6;
+    line-height: 1.5;
     text-align: center;
     display: flex;
     flex-wrap: wrap;
@@ -694,7 +695,7 @@ body::after {
     align-items: center;
     gap: 12px 24px;
     color: var(--text);
-    padding: 2.5rem;
+    padding: 1.5rem;
     width: 100%;
     text-shadow: 0 5px 15px rgba(0,0,0,0.4);
 }
@@ -876,9 +877,9 @@ body::after {
     backdrop-filter: blur(25px);
     border: 1px solid var(--gold-glow);
     border-radius: 32px;
-    padding: 2rem;
+    padding: 1.25rem 1.5rem;
     width: 100%;
-    max-width: 600px;
+    max-width: 580px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -917,8 +918,8 @@ body::after {
     grid-template-columns: repeat(4,1fr);
     gap: 0.75rem;
     width: 100%;
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
     border-top: 1px solid var(--card-border);
 }
 
@@ -1299,4 +1300,16 @@ body::after {
     font-weight: 800;
     color: var(--gold);
     text-shadow: 0 0 12px rgba(212,175,55,0.5);
+}
+/* ─── Small Laptop Height Optimization ────────────────── */
+@media (max-height: 820px) {
+    .screen { padding-top: 4rem; }
+    .storybook-panel { width: 280px; }
+    .zen-text, .feedback-text { font-size: 1.8rem; padding: 1rem; }
+    .circular-chart { width: 70px; height: 70px; }
+    .metric-val { font-size: 1.1rem; }
+    .mic-btn { width: 100px; height: 100px; }
+    .result-card { padding: 1rem; border-radius: 24px; }
+    .mentor-diagnostic { padding: 0.8rem; margin-top: 0.8rem; font-size: 0.8rem; }
+    .post-result-actions { margin-top: 0.8rem; gap: 0.5rem; }
 }
