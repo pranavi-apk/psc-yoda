@@ -1,0 +1,309 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoda (優答) — GenAI Putonghua Mentor</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="zen-circle"></div>
+
+    <!-- HEADER / NAV -->
+    <nav class="navbar">
+        <div class="logo">
+            <a href="/" class="logo-link" title="Back to Start">
+                <span class="logo-text">Yoda <span class="gold">優答</span></span>
+            </a>
+        </div>
+
+    </nav>
+
+    <!-- ONBOARDING SCREEN -->
+    <section id="onboarding" class="screen active">
+        <!-- Left: text + grade picker -->
+        <div class="onboarding-card">
+            <p class="hero-eyebrow">普通话水平测试 (PSC)</p>
+            <h1 id="welcome-title" class="hero-title">Master Mandarin<br>with Yoda 優答</h1>
+            <p id="welcome-subtitle" class="hero-subtitle">Your AI-powered coach for the Putonghua Proficiency Test. Practice, listen, and improve every day.</p>
+
+            <div class="grade-selector">
+                <div class="grade-options">
+                    <button class="grade-btn" data-grade="1">
+                        <span class="grade-icon">🏆</span>
+                        <div class="grade-info">
+                            <span class="grade-name">一级 Grade 1 — Broadcaster Level</span>
+                            <span class="grade-desc">Advanced formal vocabulary, native fluency</span>
+                        </div>
+                    </button>
+                    <button class="grade-btn" data-grade="2">
+                        <span class="grade-icon">💼</span>
+                        <div class="grade-info">
+                            <span class="grade-name">二级 Grade 2 — Professional Level</span>
+                            <span class="grade-desc">Clear everyday Mandarin, moderate complexity</span>
+                        </div>
+                    </button>
+                    <button class="grade-btn" data-grade="3">
+                        <span class="grade-icon">🌱</span>
+                        <div class="grade-info">
+                            <span class="grade-name">三级 Grade 3 — Baseline Level</span>
+                            <span class="grade-desc">Simple conversational sentences</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <button id="start-journey-btn" class="cta-btn" disabled>✦ Start Practice</button>
+        </div>
+
+        <!-- Right: Mascot -->
+        <div class="mascot-col">
+            <div class="mascot-wrapper">
+                <div class="mascot-bubble">
+                    <strong>優答!</strong> Let's ace your PSC 🎓
+                </div>
+                <img src="assets/Yoda.png" alt="Yoda Mascot" class="mascot-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- DASHBOARD SCREEN (Official PSC Sections) -->
+    <section id="dashboard" class="screen">
+        <div class="dashboard-header">
+            <h2 id="dashboard-title">PSC Training Dashboard</h2>
+            <div class="user-stats">
+                <span id="current-grade-display">Grade 1 Target</span>
+            </div>
+        </div>
+
+        <div class="bento-grid">
+            <!-- 1. 单音节字词 -->
+            <div class="bento-card" onclick="startExercise('dan_yin_jie')">
+                <div class="card-icon">字</div>
+                <h3>单音节字词</h3>
+                <p>Single-syllable characters. Master initials &amp; finals.</p>
+                <div class="psc-badge">Section 1</div>
+            </div>
+
+            <!-- 2. 多音节词语 -->
+            <div class="bento-card" onclick="startExercise('duo_yin_jie')">
+                <div class="card-icon">词</div>
+                <h3>多音节词语</h3>
+                <p>Multi-syllable words. Master tone sandhi.</p>
+                <div class="psc-badge">Section 2</div>
+            </div>
+
+            <!-- 3. 选择判断 -->
+            <div class="bento-card" onclick="startExercise('xuan_ze')">
+                <div class="card-icon">选</div>
+                <h3>选择判断</h3>
+                <p>Identify &amp; correct misused Mandarin words.</p>
+                <div class="psc-badge">Section 3</div>
+            </div>
+
+            <!-- 4. 朗读短文 (Large) -->
+            <div class="bento-card wide" onclick="startExercise('lang_du')">
+                <div class="card-content">
+                    <div class="card-icon">读</div>
+                    <div class="text-content">
+                        <h3>朗读短文</h3>
+                        <p>Read a passage aloud. Scored on fluency, tone &amp; accuracy.</p>
+                    </div>
+                </div>
+                <div class="progress-bar"><div class="fill" style="width: 75%"></div></div>
+            </div>
+
+            <!-- 5. 命题说话 -->
+            <div class="bento-card" onclick="startExercise('ming_ti')">
+                <div class="card-icon">说</div>
+                <h3>命题说话</h3>
+                <p>3-min free talk on a given topic.</p>
+                <div class="psc-badge">Section 5</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- THEME SELECTION SCREEN (Only for Section 4) -->
+    <section id="theme-selection" class="screen">
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToDashboard()">← Back</button>
+            <h2>Choose a Story Theme</h2>
+            <p>Select a theme to generate a unique PSC practice story.</p>
+        </div>
+
+        <div class="bento-grid">
+            <div class="bento-card" onclick="selectTheme('Family 家庭亲情')">
+                <div class="card-icon">🏠</div>
+                <h3>Family 家庭亲情</h3>
+                <p>Stories about warm family moments, ancestors, and hometown memories.</p>
+                <div class="psc-badge">Theme</div>
+            </div>
+
+            <div class="bento-card" onclick="selectTheme('Nature 大自然')">
+                <div class="card-icon">🌴</div>
+                <h3>Nature 大自然</h3>
+                <p>Explore mountains, rivers, seasons, and the beauty of the wild.</p>
+                <div class="psc-badge">Theme</div>
+            </div>
+
+            <div class="bento-card" onclick="selectTheme('Technology 科技未来')">
+                <div class="card-icon">🚀</div>
+                <h3>Technology 科技未来</h3>
+                <p>Futuristic cityscapes, digital life, and technological wonder.</p>
+                <div class="psc-badge">Theme</div>
+            </div>
+
+            <div class="bento-card" onclick="selectTheme('Travel 旅行见闻')">
+                <div class="card-icon">🌍</div>
+                <h3>Travel 旅行见闻</h3>
+                <p>Historic places, world wonders, and the soul of wandering.</p>
+                <div class="psc-badge">Theme</div>
+            </div>
+
+            <div class="bento-card" onclick="selectTheme('Mystery 神秘奥秘')">
+                <div class="card-icon">✨</div>
+                <h3>Mystery 神秘奥秘</h3>
+                <p>Magical realism, ancient legends, and hidden secrets.</p>
+                <div class="psc-badge">Theme</div>
+            </div>
+
+            <div class="bento-card" onclick="selectTheme('Daily Life 生活点滴')">
+                <div class="card-icon">☕</div>
+                <h3>Daily Life 生活点滴</h3>
+                <p>Simple joys, coffee shops, and the rhythm of the city.</p>
+                <div class="psc-badge">Theme</div>
+            </div>
+
+            <div class="bento-card wide" onclick="selectTheme('CLASSIC')">
+                <div class="card-icon">📜</div>
+                <h3>Classical Passages 经典短文</h3>
+                <p>Official PSC training passages from the static database.</p>
+                <div class="psc-badge">Static DB</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- EXERCISE SCREEN -->
+    <section id="exercise" class="screen">
+        <div class="exercise-header">
+            <button class="back-btn" onclick="goToDashboard()">← Back</button>
+            <h3 id="exercise-title">朗读短文</h3>
+            <!-- Listen to full sentence -->
+            <div class="listen-group">
+                <button class="listen-btn female-btn" onclick="listenFullSentence('female')" title="Female voice">♀ Female</button>
+                <button class="listen-btn male-btn"   onclick="listenFullSentence('male')"   title="Male voice">♂ Male</button>
+            </div>
+        </div>
+
+        <div class="content-area" id="content-area">
+
+            <!-- ── Storybook left page (lang_du only) ─────────────────── -->
+            <div id="storybook-panel" class="storybook-panel hidden">
+                <div class="story-img-wrap">
+                    <img id="story-image" class="story-img" src="" alt="Story illustration">
+                    <div class="story-img-overlay"></div>
+                    <div id="story-page-num" class="story-page-num">第 1 頁</div>
+                </div>
+            </div>
+            <div id="story-spine" class="story-spine hidden"></div>
+
+            <!-- ── Text / teleprompter area ───────────────────────────── -->
+            <div class="teleprompter-container" id="teleprompter-container">
+                <!-- Story title (storybook mode only) -->
+                <div id="story-title-el" class="story-title-el hidden"></div>
+                <div id="target-text" class="zen-text">今天天气很好。</div>
+                <!-- Feedback Overlay (Hidden by default) -->
+                <div id="feedback-overlay" class="feedback-text"></div>
+            </div>
+
+        </div>
+
+        <div class="controls-area">
+            <div class="visualizer">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+            
+            <button id="record-btn" class="mic-btn">
+                <span class="mic-icon">🎤</span>
+                <span id="record-text">Start Recording</span>
+            </button>
+
+            <div id="result-area" class="result-card hidden">
+                <div class="score-circle">
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <text x="18" y="20.35" class="percentage">0</text>
+                    </svg>
+                    <span class="score-label">Total Score</span>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <span class="metric-label">Tone 声调</span>
+                        <span class="metric-val" id="score-tone">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Fluency 流利</span>
+                        <span class="metric-val" id="score-fluency">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Phone 发音</span>
+                        <span class="metric-val" id="score-phone">-</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Integrity 完整</span>
+                        <span class="metric-val" id="score-integrity">-</span>
+                    </div>
+                </div>
+
+                <div id="mentor-tip" class="mentor-tip">
+                    <strong>Mentor Tip:</strong> <span id="tip-text">Nice work!</span>
+                </div>
+
+                <!-- Action Buttons After Result -->
+                <div class="post-result-actions">
+                    <div class="compare-btns">
+                        <div class="compare-label">Compare:</div>
+                        <button class="action-btn listen-result-btn female-btn" onclick="listenFullSentence('female')">♀ Native F</button>
+                        <button class="action-btn listen-result-btn male-btn"   onclick="listenFullSentence('male')">♂ Native M</button>
+                        <button class="action-btn myvoice-btn" onclick="playMyRecording()">🎙 My Voice</button>
+                    </div>
+                    <div class="nav-btns">
+                        <button class="action-btn next-btn" onclick="nextSentence()">⏭ Next</button>
+                        <button class="action-btn complete-btn" onclick="completeSession()">🏁 Report</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REPORT SCREEN -->
+    <section id="report" class="screen">
+        <div class="report-header">
+            <h2>📊 Session Report Card</h2>
+            <button class="back-btn" onclick="goToDashboard()">← Back to Dashboard</button>
+        </div>
+        <div id="report-content" class="report-content">
+            <p>⏳ Generating your personal report card...</p>
+        </div>
+    </section>
+
+    <!-- YODA CELEBRATION MODAL -->
+    <div id="yoda-modal" class="modal">
+        <div class="modal-content">
+            <img src="assets/Yoda.png" alt="Yoda Master" class="yoda-img">
+            <h1 class="yoda-text">Yoda! (優答!)</h1>
+            <p>Native Level Proficiency Achieved!</p>
+            <button class="close-modal" onclick="closeModal()">Continue</button>
+        </div>
+        <div class="confetti"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>

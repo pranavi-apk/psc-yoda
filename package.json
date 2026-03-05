@@ -1,0 +1,17 @@
+{
+  "name": "iat-ws",
+  "version": "1.0.0",
+  "description": "",
+  "main": "iat-ws-node.js",
+  "dependencies": {
+    "crypto-js": "^3.1.9-1",
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3",
+    "ws": "^7.1.2"
+  },
+  "scripts": {
+    "start": "node ise-ws-node-EN.js"
+  },
+  "author": "iflytek",
+  "license": "ISC"
+}
