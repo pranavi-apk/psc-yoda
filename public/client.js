@@ -693,6 +693,11 @@ function renderResult(xmlStr) {
             let detailedErrorItems = [];
             for (let i = 0; i < wordNodes.length; i++) {
                 const content = wordNodes[i].getAttribute('content');
+                
+                // Find pinyin for this character from STATE.currentChars
+                const charData = STATE.currentChars.find(c => c.c === content);
+                const pinyin = charData ? charData.p.toLowerCase() : '';
+
                 const syllNodes = wordNodes[i].getElementsByTagName('syll');
                 for (let s = 0; s < syllNodes.length; s++) {
                     const phoneNodes = syllNodes[s].getElementsByTagName('phone');
@@ -705,10 +710,31 @@ function renderResult(xmlStr) {
                             detailedErrorItems.push(`The word <strong>"${content}"</strong> was skipped. Try to read every character.`);
                             break;
                         } else if (isYun === 1 && perrMsg === 2) {
-                            detailedErrorItems.push(`The <strong>tone</strong> of <strong>"${content}"</strong> was off. Focus on the pitch rise/fall.`);
+                            let toneAdvice = `The <strong>tone</strong> of <strong>"${content}"</strong> was off. Focus on the pitch rise/fall.`;
+                            if (pinyin.endsWith('3')) {
+                                toneAdvice = `The <strong>Tone 3</strong> on <strong>"${content}"</strong> needs to be lower and deeper. Don't let it slide into Tone 2.`;
+                            }
+                            detailedErrorItems.push(toneAdvice);
                         } else if (perrMsg !== 0) {
-                            const part = isYun === 0 ? "initial sound (vowel)" : "final sound (rhyme)";
-                            detailedErrorItems.push(`The <strong>${part}</strong> of <strong>"${content}"</strong> was unclear. Tap the word to hear the standard.`);
+                            const part = isYun === 0 ? "initial sound" : "final sound";
+                            let specificAdvice = `The <strong>${part}</strong> of <strong>"${content}"</strong> was unclear. Tap the word to hear the standard.`;
+                            
+                            // ── Cantonese-Specific Diagnostic Alerts ──
+                            if (isYun === 0) {
+                                if (pinyin.startsWith('zh') || pinyin.startsWith('ch') || pinyin.startsWith('sh') || pinyin.startsWith('r')) {
+                                    specificAdvice = `<strong>"${content}"</strong> has a <strong>retroflex initial (${pinyin.substring(0,2)})</strong>. Avoid the Cantonese habit of flat 'z/c/s' sounds; curl your tongue back!`;
+                                } else if (pinyin.startsWith('j') || pinyin.startsWith('q') || pinyin.startsWith('x')) {
+                                    specificAdvice = `Watch the <strong>j/q/x</strong> initial on <strong>"${content}"</strong>. Keep the tongue tip down and front.`;
+                                }
+                            } else {
+                                if (pinyin.includes('u:') || pinyin.includes('v') || pinyin.includes('ü')) {
+                                    specificAdvice = `The <strong>"ü" sound</strong> in <strong>"${content}"</strong> was missed. Round your lips tightly, like whistling!`;
+                                } else if (pinyin.endsWith('in') || pinyin.endsWith('ing')) {
+                                    specificAdvice = `Check the <strong>nasal ending (-in/-ing)</strong> on <strong>"${content}"</strong>. Cantonese speakers often swap these; feel the resonance in your nose.`;
+                                }
+                            }
+                            
+                            detailedErrorItems.push(specificAdvice);
                         }
                     }
                     if (detailedErrorItems.length >= 4) break;
