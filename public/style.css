@@ -820,8 +820,8 @@ body::after {
 
 /* ─── Mic Button ─────────────────────────────────────────── */
 .mic-btn {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     background: var(--gold-linear);
     border: none;
@@ -867,8 +867,8 @@ body::after {
     100% { box-shadow: 0 0 0 0    rgba(255,95,86,0); }
 }
 
-.mic-icon  { font-size: 1.6rem; margin-bottom: 2px; }
-#record-text { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.mic-icon  { font-size: 1.8rem; margin-bottom: 4px; }
+#record-text { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
 
 /* ─── Result Card ────────────────────────────────────────── */
 .result-card {
