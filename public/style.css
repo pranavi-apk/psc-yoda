@@ -1205,7 +1205,7 @@ body::after {
 
 .yoda-popup.show {
     animation: popupInCentered 0.6s cubic-bezier(0.22,1,0.36,1) forwards,
-               popupOutCentered 0.4s ease-in 3.2s forwards;
+               popupOutCentered 0.4s ease-in 1.6s forwards;
 }
 
 @keyframes popupInCentered {

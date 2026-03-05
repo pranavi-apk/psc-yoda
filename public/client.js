@@ -384,8 +384,8 @@ function showYodaPopup(imgFile, message, score) {
     // Trigger animation on next frame
     requestAnimationFrame(() => popup.classList.add('show'));
 
-    // Remove from DOM after animation completes (3.2s total)
-    setTimeout(() => popup.remove(), 3300);
+    // Remove from DOM after animation completes (2s total)
+    setTimeout(() => popup.remove(), 2000);
 }
 
 // Play back the user's own recorded voice
@@ -606,7 +606,7 @@ function renderResult(xmlStr) {
     else                            reactionImg = 'Try_Again_Yoda.png';
     showYodaPopup(reactionImg, reactionMessages[reactionImg], Math.round(pct));
 
-    // Delay showing the scorecard and detailed feedback to let the Yoda reaction pop up first
+    // Delay showing the scorecard and detailed feedback
     setTimeout(() => {
         // Update chart
         document.querySelector('.circle').style.strokeDasharray = `${pct}, 100`;
