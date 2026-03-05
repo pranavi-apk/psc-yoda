@@ -19,7 +19,9 @@
                 <span class="logo-text">Yoda <span class="gold">優答</span></span>
             </a>
         </div>
-
+        <div class="nav-actions">
+            <button id="nav-mock-btn" class="special-btn hidden" onclick="goToMockExamDashboard()">📝 Mock Exam Mode</button>
+        </div>
     </nav>
 
     <!-- ONBOARDING SCREEN -->
@@ -304,6 +306,62 @@
         </div>
         <div class="confetti"></div>
     </div>
+
+    <!-- MOCK EXAM DASHBOARD -->
+    <section id="mock-exam-dashboard" class="screen">
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToDashboard()">← Back</button>
+            <h2>Official Mock Exams</h2>
+            <p>Timed simulations of the real Putonghua Proficiency Test (PSC).</p>
+        </div>
+        <div class="bento-grid" id="mock-exam-list">
+            <!-- Simulated cards -->
+            <div class="bento-card special" onclick="startMockExam(1)">
+                <div class="card-icon">📄</div>
+                <h3>PSC Mock Exam 01</h3>
+                <p>Standard difficulty. Full 4-part simulation.</p>
+                <div class="psc-badge">Official</div>
+            </div>
+            <div class="bento-card special" onclick="startMockExam(2)">
+                <div class="card-icon">📄</div>
+                <h3>PSC Mock Exam 02</h3>
+                <p>Advanced focus. Retroflex & tone sandhi emphasis.</p>
+                <div class="psc-badge">Official</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MOCK EXAM SESSION (Clean Exam Style) -->
+    <section id="mock-exam-session" class="screen exam-mode">
+        <div class="exam-header">
+            <div class="exam-title-group">
+                <span id="exam-timer" class="timer">00:00</span>
+                <h2 id="exam-session-title">PSC Mock Exam</h2>
+            </div>
+            <div class="exam-progress">
+                Section <span id="exam-current-sec">1</span> of 4
+            </div>
+            <button class="exit-exam-btn" onclick="exitExam()">Exit Exam</button>
+        </div>
+
+        <div class="exam-content-container">
+            <div id="exam-part-title" class="exam-part-label">Part 1: Single Syllables</div>
+            
+            <div class="exam-viewport">
+                <div id="exam-text-area" class="exam-text-display">
+                    <!-- Exam content goes here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="exam-footer">
+            <button id="exam-record-btn" class="exam-mic-btn">
+                <span class="exam-mic-icon">🎤</span>
+                <span id="exam-record-text">Start Recording</span>
+            </button>
+            <button id="exam-next-btn" class="exam-nav-btn" onclick="nextExamPart()">Next Section →</button>
+        </div>
+    </section>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>

@@ -14,7 +14,14 @@ const STATE = {
     voice: 'cmn-CN-Chirp3-HD-Aoede',  // default: female
     pageNum: 1,            // storybook page counter
     selectedTheme: '',     // Current story theme
-    isGenerating: false    // Lock to prevent glitches
+    isGenerating: false,   // Lock to prevent glitches
+    mockExam: {
+        timerId: null,
+        data: null,
+        currentPartIndex: 0,
+        timeLeft: 0,
+        isRecording: false
+    }
 };
 
 // ─── DOM ──────────────────────────────────────────────────────────────────
@@ -23,7 +30,9 @@ const screens = {
     dashboard:       document.getElementById('dashboard'),
     themeSelection:  document.getElementById('theme-selection'),
     exercise:        document.getElementById('exercise'),
-    report:          document.getElementById('report')
+    report:          document.getElementById('report'),
+    mockExamDashboard: document.getElementById('mock-exam-dashboard'),
+    mockExamSession:   document.getElementById('mock-exam-session')
 };
 
 
@@ -124,7 +133,15 @@ recordBtn.addEventListener('click', async () => {
 
 function switchScreen(name) {
     Object.values(screens).forEach(el => el.classList.remove('active'));
-    screens[name].classList.add('active');
+    if (screens[name]) screens[name].classList.add('active');
+    
+    // Toggle Mock Exam button in Navbar visibility (only hide on onboarding)
+    const navMockBtn = document.getElementById('nav-mock-btn');
+    if (navMockBtn) {
+        if (name === 'onboarding') navMockBtn.classList.add('hidden');
+        else navMockBtn.classList.remove('hidden');
+    }
+
     if (name === 'dashboard') {
         const gradeLabels = { 1: '一级 Grade 1', 2: '二级 Grade 2', 3: '三级 Grade 3' };
         document.getElementById('current-grade-display').innerText =
@@ -135,6 +152,7 @@ function switchScreen(name) {
 window.goToDashboard = () => {
     stopRecording();
     STATE.selectedTheme = '';
+    STATE.activeSection = null;
     deactivateStorybook();
     switchScreen('dashboard');
 };
@@ -485,25 +503,23 @@ let audioContext, processor, input, stream;
 
 async function startRecording() {
     try {
-        document.getElementById('record-text').innerText = 'Processing…';
+        const isExam = STATE.activeSection === 'mock';
+        const txtEl = isExam ? document.getElementById('exam-record-text') : document.getElementById('record-text');
+        const bEl = isExam ? document.getElementById('exam-record-btn') : recordBtn;
 
-        // ── Reset result display so previous attempt's scores never linger ──
-        resultArea.classList.add('hidden');
-        document.querySelector('.circle').style.strokeDasharray = '0, 100';
-        document.querySelector('.percentage').textContent = '…';
-        document.getElementById('score-tone').innerText      = '-';
-        document.getElementById('score-fluency').innerText   = '-';
-        document.getElementById('score-phone').innerText     = '-';
-        document.getElementById('score-integrity').innerText = '-';
-        document.getElementById('tip-text').innerText        = '';
+        txtEl.innerText = 'Processing…';
 
-        // Reset diagnostics UI
-        const diagEl = document.getElementById('mentor-diagnostic');
-        if (diagEl) {
-            diagEl.innerHTML = '';
-            diagEl.classList.add('hidden');
+        // ── Reset result display (only for practice) ──
+        if (!isExam) {
+            resultArea.classList.add('hidden');
+            document.querySelector('.circle').style.strokeDasharray = '0, 100';
+            document.querySelector('.percentage').textContent = '…';
+            document.getElementById('score-tone').innerText      = '-';
+            document.getElementById('score-fluency').innerText   = '-';
+            document.getElementById('score-phone').innerText     = '-';
+            document.getElementById('score-integrity').innerText = '-';
+            document.getElementById('tip-text').innerText        = '';
         }
-        document.getElementById('mentor-tip').style.display = 'block';
 
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -525,19 +541,19 @@ async function startRecording() {
         processor.onaudioprocess = (e) => {
             if (!isRecording) return;
             const inputData = e.inputBuffer.getChannelData(0);
-            // Capture a copy for local playback at original quality
             STATE.recordingBuffer.push(new Float32Array(inputData));
             const down = downsampleBuffer(inputData, sampleRate, 16000);
             socket.emit('audio-data', floatTo16BitPCM(down));
         };
 
         isRecording = true;
-        recordBtn.classList.add('recording');
-        document.getElementById('record-text').innerText = 'Stop';
+        bEl.classList.add('recording');
+        txtEl.innerText = 'Stop';
 
-        // Keep prompt visible during recording
-        feedbackOverlay.style.display = 'none';
-        targetTextEl.style.display = 'flex';
+        if (!isExam) {
+            feedbackOverlay.style.display = 'none';
+            targetTextEl.style.display = 'flex';
+        }
 
     } catch (err) {
         console.error(err);
@@ -548,10 +564,14 @@ async function startRecording() {
 function stopRecording() {
     if (!isRecording) return;
     isRecording = false;
-    recordBtn.classList.remove('recording');
-    document.getElementById('record-text').innerText = 'Start Recording';
+    
+    const isExam = STATE.activeSection === 'mock';
+    const bEl = isExam ? document.getElementById('exam-record-btn') : recordBtn;
+    const txtEl = isExam ? document.getElementById('exam-record-text') : document.getElementById('record-text');
 
-    // Build WAV blob from captured buffer for local playback
+    bEl.classList.remove('recording');
+    txtEl.innerText = isExam ? 'Start Recording' : 'Start Recording';
+
     if (STATE.recordingBuffer.length > 0 && audioContext) {
         const sr = audioContext.sampleRate;
         const totalLen = STATE.recordingBuffer.reduce((s, b) => s + b.length, 0);
@@ -852,3 +872,91 @@ function floatTo16BitPCM(input) {
     }
     return out.buffer;
 }
+
+// ─── Mock Exam Control ──────────────────────────────────
+if (document.getElementById('exam-record-btn')) {
+    document.getElementById('exam-record-btn').addEventListener('click', () => {
+        if (!isRecording) startRecording();
+        else stopRecording();
+    });
+}
+
+// ─── Mock Exam Logic ──────────────────────────────────────────────────────
+
+window.goToMockExamDashboard = () => {
+    stopRecording();
+    clearInterval(STATE.mockExam.timerId);
+    switchScreen('mockExamDashboard');
+};
+
+window.startMockExam = async (examId) => {
+    try {
+        const res = await fetch(`/api/mock-exam/${examId}`);
+        const examData = await res.json();
+        
+        STATE.mockExam.data = examData;
+        STATE.mockExam.currentPartIndex = 0;
+        STATE.activeSection = 'mock'; // Marker for exam mode
+        
+        loadMockExamPart(0);
+        switchScreen('mockExamSession');
+    } catch (e) {
+        console.error(e);
+        alert('Failed to load mock exam.');
+    }
+};
+
+function loadMockExamPart(index) {
+    const part = STATE.mockExam.data.sections[index];
+    document.getElementById('exam-session-title').innerText = STATE.mockExam.data.title;
+    document.getElementById('exam-current-sec').innerText = index + 1;
+    document.getElementById('exam-part-title').innerText = part.title;
+    document.getElementById('exam-text-area').innerText = part.content;
+    
+    // Update active text for eval
+    STATE.currentText = part.content;
+    
+    STATE.mockExam.timeLeft = part.timeLimit;
+    updateExamTimerDisplay();
+    startExamTimer();
+}
+
+function startExamTimer() {
+    clearInterval(STATE.mockExam.timerId);
+    STATE.mockExam.timerId = setInterval(() => {
+        STATE.mockExam.timeLeft--;
+        updateExamTimerDisplay();
+        if (STATE.mockExam.timeLeft <= 0) {
+            clearInterval(STATE.mockExam.timerId);
+            // Optionally auto-advance
+        }
+    }, 1000);
+}
+
+function updateExamTimerDisplay() {
+    const mins = Math.floor(STATE.mockExam.timeLeft / 60);
+    const secs = STATE.mockExam.timeLeft % 60;
+    document.getElementById('exam-timer').innerText = 
+        `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+window.nextExamPart = () => {
+    if (isRecording) stopRecording();
+    STATE.mockExam.currentPartIndex++;
+    if (STATE.mockExam.currentPartIndex < STATE.mockExam.data.sections.length) {
+        loadMockExamPart(STATE.mockExam.currentPartIndex);
+    } else {
+        clearInterval(STATE.mockExam.timerId);
+        alert('Exam Complete! Well done.');
+        goToMockExamDashboard();
+    }
+};
+
+window.exitExam = () => {
+    if (confirm('Are you sure you want to exit the exam? All progress will be lost.')) {
+        clearInterval(STATE.mockExam.timerId);
+        stopRecording();
+        goToMockExamDashboard();
+    }
+}
+

@@ -1,0 +1,30 @@
+{
+    "id": "mock_01",
+    "title": "PSC Mock Exam 01 (Official Style)",
+    "sections": [
+        {
+            "id": "dan_yin_jie",
+            "title": "Part 1: Single Syllables (100 Characters)",
+            "timeLimit": 210,
+            "content": "bā bō bǐ fù mă pàng tĭ dī tōu nà lán gù kăn hóng qì qià xiǎo..."
+        },
+        {
+            "id": "duo_yin_jie",
+            "title": "Part 2: Multi-syllable Words (50 Words)",
+            "timeLimit": 150,
+            "content": "国家 森林 漂亮 朋友 学习 北京 老师 同学..."
+        },
+        {
+            "id": "lang_du",
+            "title": "Part 3: Reading Passage",
+            "timeLimit": 240,
+            "content": "那是力争上游的一种树，笔直的干，笔直的枝。它的干通常是丈把高，像加了人工似的，一丈以内绝无旁枝。它所有的丫枝一律向上，而且紧紧靠拢，也像加了人工似的，成为一束，绝不旁逸斜出。它的宽大的叶子也是片片向上，几乎没有斜生的，更不用说倒垂了。..."
+        },
+        {
+            "id": "ming_ti",
+            "title": "Part 4: Propositional Speaking",
+            "timeLimit": 180,
+            "content": "请从以下两个话题中任选其一进行三分钟陈述：\n1. 我喜欢的节日\n2. 我的愿望"
+        }
+    ]
+}

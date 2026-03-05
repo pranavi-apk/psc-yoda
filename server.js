@@ -354,6 +354,14 @@ app.get('/api/pixabay', (req, res) => {
         });
     }).on('error', (e) => res.status(500).json({ error: e.message }));
 });
+app.get('/api/mock-exam/:id', (req, res) => {
+    const examPath = path.join(__dirname, 'mock_exams', `${req.params.id}.json`);
+    if (fs.existsSync(examPath)) {
+        res.json(JSON.parse(fs.readFileSync(examPath, 'utf8')));
+    } else {
+        res.status(404).json({ error: 'Exam not found' });
+    }
+});
 
 
 app.post('/api/tts', async (req, res) => {
