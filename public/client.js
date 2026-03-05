@@ -497,6 +497,14 @@ async function startRecording() {
         document.getElementById('score-integrity').innerText = '-';
         document.getElementById('tip-text').innerText        = '';
 
+        // Reset diagnostics UI
+        const diagEl = document.getElementById('mentor-diagnostic');
+        if (diagEl) {
+            diagEl.innerHTML = '';
+            diagEl.classList.add('hidden');
+        }
+        document.getElementById('mentor-tip').style.display = 'block';
+
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const sampleRate = audioContext.sampleRate;
@@ -746,11 +754,17 @@ function renderResult(xmlStr) {
                 constructivePoints = detailedErrorItems;
             }
 
-            if (stats.fluency < 70) generalTips.push("Your reading pace is a bit uneven. Try reading more smoothly.");
-            if (stats.integrity < 80 && stats.skipped > 0) generalTips.push("You missed several characters. Ensure you follow the text closely.");
+            if (fluency < 70) generalTips.push("Your reading pace is a bit uneven. Try reading more smoothly.");
+            if (integrity < 80 && stats.skipped > 0) generalTips.push("You missed several characters. Ensure you follow the text closely.");
             
-            if (constructivePoints.length === 0 && pct > 90) {
-                constructivePoints.push("Excellent! Your pronunciation, initials, and tones are all native-level.");
+            if (constructivePoints.length === 0) {
+                if (pct >= 95) {
+                    constructivePoints.push("Excellent work! Your pronunciation and tones are very natural.");
+                } else if (pct >= 80) {
+                    constructivePoints.push("Good effort. There are no major sound errors, just focus on refined clarity.");
+                } else {
+                    constructivePoints.push("The AI had some trouble clearly identifying your words. Try speaking a bit slower and louder.");
+                }
             }
 
             diagnosticHtml += constructivePoints.map(t => `<div class="diagnostic-item"><div class="diagnostic-bullet"></div><div>${t}</div></div>`).join('');
