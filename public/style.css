@@ -868,7 +868,7 @@ body::after {
 }
 
 .mic-icon  { font-size: 1.8rem; margin-bottom: 4px; }
-#record-text { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+#record-text { font-size: 0.52rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; }
 
 /* ─── Result Card ────────────────────────────────────────── */
 .result-card {
