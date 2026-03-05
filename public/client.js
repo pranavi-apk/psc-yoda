@@ -136,6 +136,17 @@ function switchScreen(name) {
     Object.values(screens).forEach(el => el.classList.remove('active'));
     if (screens[name]) screens[name].classList.add('active');
     
+    // Global Navbar handling
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        // Hide navbar in Exam Mode, Instructions, and Report
+        if (name === 'mockExamSession' || name === 'mockExamInstructions' || name === 'report') {
+            navbar.classList.add('hidden');
+        } else {
+            navbar.classList.remove('hidden');
+        }
+    }
+
     // Toggle Mock Exam button in Navbar visibility (only hide on onboarding)
     const navMockBtn = document.getElementById('nav-mock-btn');
     if (navMockBtn) {

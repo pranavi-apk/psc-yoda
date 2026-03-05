@@ -1324,7 +1324,7 @@ body::after {
 .exam-mode {
     background: #fdfdfe !important;
     color: #1a1a1a !important;
-    padding-top: 1.5rem !important;
+    padding: 2rem !important; /* Fixed padding since navbar is hidden */
 }
 
 .exam-header {
