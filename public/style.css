@@ -937,6 +937,63 @@ body::after {
     line-height: 1.5;
 }
 
+.mentor-diagnostic {
+    background: rgba(44, 62, 80, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.2rem;
+    margin-top: 1.5rem;
+    width: 100%;
+    font-size: 0.9rem;
+}
+
+.mentor-diagnostic h4 {
+    color: var(--gold);
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.diagnostic-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+.diagnostic-bullet {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--gold);
+    margin-top: 8px;
+}
+
+/* Specific Error States */
+.char-score.skipped {
+    color: #95a5a6;
+    border-bottom: 2px dashed #95a5a6;
+    opacity: 0.6;
+}
+.char-score.tone-error {
+    color: #f39c12;
+    border-bottom: 2px solid #f39c12;
+    text-shadow: 0 0 8px rgba(243, 156, 18, 0.3);
+}
+.char-score.sound-error {
+    color: #e74c3c;
+    border-bottom: 2px solid #e74c3c;
+    text-shadow: 0 0 8px rgba(231, 76, 60, 0.3);
+}
+.char-score.extra-word {
+    color: #9b59b6;
+    border-bottom: 2px dotted #9b59b6;
+}
+
+
 /* ─── Post-Result Actions ────────────────────────────────── */
 .post-result-actions {
     display: flex;

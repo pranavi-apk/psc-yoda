@@ -402,17 +402,20 @@ app.post('/api/generate-report', async (req, res) => {
                    : lang === 'hk' ? 'Traditional Chinese (Cantonese users)'
                    : 'Simplified Chinese';
 
-    const historyStr = history.map((h, i) =>
-        `Row ${i+1}: Section="${h.section}" | Text="${h.text}" | Score=${(h.totalScore||0).toFixed(1)} | Tone=${(h.tone||0).toFixed(1)} | Fluency=${(h.fluency||0).toFixed(1)} | Errors=[${h.errors.join(', ') || 'none'}]`
-    ).join('\n');
+    const historyStr = history.map((h, i) => {
+        const stats = h.errorStats ? ` | Stats={Skipped:${h.errorStats.skipped}, Tone:${h.errorStats.tone}, Sound:${h.errorStats.sound}, Extra:${h.errorStats.extra}}` : '';
+        return `Row ${i+1}: Section="${h.section}" | Text="${h.text}" | Score=${(h.totalScore||0).toFixed(1)} | Tone=${(h.tone||0).toFixed(1)} | Fluency=${(h.fluency||0).toFixed(1)} | Errors=[${h.errors.join(', ') || 'none'}]${stats}`;
+    }).join('\n');
 
     const messages = [
         {
             role: 'system',
             content: `You are a PSC (普通话水平测试) coach writing a report card in ${langName}. 
+Analyze the provided session history, especially the 'Stats' for each row (Skipped, Tone, Sound, Extra). 
 Return ONLY an HTML string (no markdown, no code fences) containing:
-1. A <table> with columns: # | 练习内容 | 得分 | 声调 | 流利度 | 错误字 | 改进建议
-2. A short <div class="report-summary"> paragraph with top-3 tips.
+1. A <table> with columns: # | 练习内容 | 得分 | 声调 | 流利度 | 错误评析 | 改进建议
+2. In the '错误评析' column, be specific: e.g., "3 tone errors", "1 word skipped".
+3. A short <div class="report-summary"> paragraph with top-3 strategic tips based on their patterns (e.g. if they have many Tone errors, suggest Tone 3 sandhi practice).
 Use inline styles for the table: border-collapse:collapse, td padding 8px 12px, alternating row background rgba(255,255,255,0.05).
 Color scores: green if >=80, orange if >=60, red if <60.`
         },

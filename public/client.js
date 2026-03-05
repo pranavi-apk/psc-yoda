@@ -624,54 +624,116 @@ function renderResult(xmlStr) {
             const wordNodes = metricsNode.getElementsByTagName('word');
             let html = '';
             let errorChars = [];
+            
+            let stats = { skipped: 0, tone: 0, sound: 0, extra: 0, total: 0 };
+
             for (let i = 0; i < wordNodes.length; i++) {
                 const content = wordNodes[i].getAttribute('content');
-                const syll = wordNodes[i].getElementsByTagName('syll')[0];
-                let isError = false;
-                if (syll) {
-                    const phones = syll.getElementsByTagName('phone');
-                    for (let p = 0; p < phones.length; p++) {
-                        const err = phones[p].getAttribute('perr_msg');
-                        if (err && err !== '0') { isError = true; break; }
+                const syllNodes = wordNodes[i].getElementsByTagName('syll');
+                
+                let wordErrorType = null; // null, 'skipped', 'tone', 'sound', 'extra'
+                
+                for (let s = 0; s < syllNodes.length; s++) {
+                    const dpMsg = parseInt(syllNodes[s].getAttribute('dp_message') || '0');
+                    if (dpMsg === 16) { wordErrorType = 'skipped'; break; }
+                    if (dpMsg === 32) { wordErrorType = 'extra'; break; }
+                    
+                    const phoneNodes = syllNodes[s].getElementsByTagName('phone');
+                    for (let p = 0; p < phoneNodes.length; p++) {
+                        const isYun = parseInt(phoneNodes[p].getAttribute('is_yun') || '0');
+                        const perrMsg = parseInt(phoneNodes[p].getAttribute('perr_msg') || '0');
+                        
+                        if (isYun === 1 && perrMsg === 2) {
+                            if (!wordErrorType || wordErrorType === 'tone') wordErrorType = 'tone';
+                        } else if (perrMsg !== 0) {
+                            wordErrorType = 'sound';
+                        }
                     }
+                    if (wordErrorType === 'sound') break;
                 }
-                if (isError) errorChars.push(content);
-                const cls = isError ? 'score-low' : 'score-high';
-                html += `<span class="char-score ${cls}" onclick="playPronunciation('${content}')" title="${isError ? 'Mispronounced — click to hear' : 'Correct'}">${content}</span>`;
+
+                if (wordErrorType) stats[wordErrorType]++;
+                stats.total++;
+
+                const cls = !wordErrorType ? 'score-high' : 
+                            wordErrorType === 'skipped' ? 'skipped' :
+                            wordErrorType === 'tone'    ? 'tone-error' :
+                            wordErrorType === 'extra'   ? 'extra-word' : 'sound-error';
+                
+                const title = !wordErrorType ? 'Correct' :
+                              wordErrorType === 'skipped' ? 'Skipped word' :
+                              wordErrorType === 'tone'    ? 'Tone error (声调错误)' :
+                              wordErrorType === 'extra'   ? 'Extra word added' : 'Sound error (发音不准)';
+
+                if (wordErrorType) errorChars.push(content);
+                html += `<span class="char-score ${cls}" onclick="playPronunciation('${content}')" title="${title}">${content}</span>`;
             }
+
             if (html) {
                 targetTextEl.style.display = 'none';
                 feedbackOverlay.innerHTML  = html;
                 feedbackOverlay.style.display = 'flex';
             }
+
+            // ── Construct dynamic mentor feedback ──
+            let diagnosticHtml = '<h4><span class="mic-icon">🧐</span> Live Diagnostic</h4>';
+            let tips = [];
+            
+            if (stats.skipped > 0) tips.push(`You skipped <strong>${stats.skipped}</strong> word(s). Try to maintain a steady pace.`);
+            if (stats.tone > 0)    tips.push(`Watch your <strong>tones (声调)</strong> on highlighted orange characters. Focus on the pitch rise/fall.`);
+            if (stats.sound > 0)   tips.push(`Detected <strong>sound inaccuracies</strong> (Initials/Finals) on red words. Tap them to hear the correct way.`);
+            if (stats.extra > 0)   tips.push(`You added some <strong>extra sounds</strong> or repetitions. Try to stay strictly to the text.`);
+            
+            if (tips.length === 0 && pct > 90) {
+                tips.push("Excellent work! Your pronunciation and tones are very natural.");
+            } else if (tips.length === 0) {
+                tips.push("Good attempt. Try to speak more clearly to improve your score.");
+            }
+
+            diagnosticHtml += tips.map(t => `<div class="diagnostic-item"><div class="diagnostic-bullet"></div><div>${t}</div></div>`).join('');
+            
+            const diagEl = document.getElementById('mentor-diagnostic');
+            diagEl.innerHTML = diagnosticHtml;
+            diagEl.classList.remove('hidden');
+            document.getElementById('mentor-tip').style.display = 'none'; // Hide generic tip
         }
     }, 800);
 
-    // Save to history (always, no limit)
-    // We do this immediately so the data is safe
-    let errorCharsFromXml = [];
+    // ── Calculate detailed error stats for history ──
+    let detailedErrors = [];
+    let statsForHistory = { skipped: 0, tone: 0, sound: 0, extra: 0 };
     if (isMandarin) {
         const wordNodes = metricsNode.getElementsByTagName('word');
         for (let i = 0; i < wordNodes.length; i++) {
             const content = wordNodes[i].getAttribute('content');
-            const syll = wordNodes[i].getElementsByTagName('syll')[0];
-            let isError = false;
-            if (syll) {
-                const phones = syll.getElementsByTagName('phone');
+            const syllNodes = wordNodes[i].getElementsByTagName('syll');
+            let type = null;
+            for (let s = 0; s < syllNodes.length; s++) {
+                const dp = parseInt(syllNodes[s].getAttribute('dp_message') || '0');
+                if (dp === 16) { type = 'skipped'; break; }
+                if (dp === 32) { type = 'extra'; break; }
+                const phones = syllNodes[s].getElementsByTagName('phone');
                 for (let p = 0; p < phones.length; p++) {
-                    const err = phones[p].getAttribute('perr_msg');
-                    if (err && err !== '0') { isError = true; break; }
+                    const isYun = parseInt(phones[p].getAttribute('is_yun') || '0');
+                    const err = parseInt(phones[p].getAttribute('perr_msg') || '0');
+                    if (isYun === 1 && err === 2) { if (!type || type === 'tone') type = 'tone'; }
+                    else if (err !== 0) { type = 'sound'; }
                 }
+                if (type === 'sound') break;
             }
-            if (isError) errorCharsFromXml.push(content);
+            if (type) {
+                statsForHistory[type]++;
+                detailedErrors.push(`${content} (${type})`);
+            }
         }
     }
 
     STATE.sessionHistory.push({
-        section:    STATE.activeSection,
-        text:       STATE.currentText,
+        section:      STATE.activeSection,
+        text:         STATE.currentText,
         totalScore, tone, fluency, phone, integrity,
-        errors:     [...new Set(errorCharsFromXml)]
+        errors:       detailedErrors,
+        errorStats:   statsForHistory
     });
 
     // Tip / Yoda modal
