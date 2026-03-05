@@ -55,7 +55,7 @@ async function callAzureOpenAI(messages, maxTokens = 600) {
 const PSC_SECTIONS = {
     dan_yin_jie:    { zh: '单音节字词', desc: 'A single Chinese character (one syllable). Focus on initials and finals.' },
     duo_yin_jie:    { zh: '多音节词语', desc: 'A two-to-three syllable Mandarin word or compound. Focus on tone sandhi.' },
-    lang_du:        { zh: '朗读短文',   desc: 'A vivid, creative short story in Mandarin (4-6 sentences) for PSC reading practice. Make it imaginative and engaging like a storybook entry with a clear visual scene. Also return "title" (4-8 Chinese character story title) and "keyword" (2-4 English words for a Pixabay photo search, e.g. "moonlit village river" or "cherry blossom temple garden"). Story must flow naturally for reading aloud.' },
+    lang_du:        { zh: '朗读短文',   desc: 'A vivid, creative short story in Mandarin (4-6 sentences) for PSC reading practice. Make it imaginative and engaging like a storybook entry with a clear visual scene. Also return "title" (4-8 Chinese character story title) and "keyword" (2-4 English words for an artistic illustration search, e.g. "whimsical forest house" or "watercolor mountain landscape"). Story must flow naturally for reading aloud.' },
     ming_ti:        { zh: '命题说话',   desc: 'A free-talk prompt question for 3-minute speech (命题说话). E.g. 请谈谈你最难忘的一次旅行' },
     xuan_ze:        { zh: '选择判断',   desc: 'A short sentence containing a common Cantonese-influenced Mandarin error (选择判断). The sentence should sound plausible but contain a word usage mistake.' }
 };
@@ -87,7 +87,7 @@ async function generateOneSentence(section, grade, theme = '') {
             content: `You are a PSC (普通话水平测试) exam coach. Respond with ONLY valid JSON, no markdown, no extra text.
 For lang_du (story) use: {"text":"full text","title":"Chinese title","keyword":"English photo keywords","chars":[{"c":"字","p":"pīnyīn"},{"c":"，","p":""},...]}
 For all other sections use: {"text":"full text","chars":[{"c":"字","p":"pīnyīn"},{"c":"，","p":""},...]}
-Rules: "text" = full Simplified Chinese. "chars" = every char/punctuation with tone-marked pinyin, punctuation gets p="". "title" = 4-8 Chinese chars. "keyword" = 2-4 English words for Pixabay image search.
+Rules: "text" = full Simplified Chinese. "chars" = every char/punctuation with tone-marked pinyin, punctuation gets p="". "title" = 4-8 Chinese chars. "keyword" = 2-4 English words for Pixabay illustration search. Use artistic, whimsical keywords.
 
 Target Audience: Cantonese speakers learning Mandarin. 
 Priority Targets:
@@ -337,7 +337,7 @@ app.post('/api/generate-content', async (req, res) => {
 // ─── REST: Pixabay Image Search ──────────────────────────────────────────────
 app.get('/api/pixabay', (req, res) => {
     const q = req.query.q || 'nature';
-    const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(q)}&image_type=photo&orientation=horizontal&min_width=800&per_page=10&safesearch=true&order=popular`;
+    const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(q)}&image_type=illustration&orientation=horizontal&min_width=800&per_page=10&safesearch=true&order=popular`;
     https.get(url, (pixRes) => {
         let data = '';
         pixRes.on('data', chunk => data += chunk);
