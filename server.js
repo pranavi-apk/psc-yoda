@@ -259,7 +259,6 @@ app.post('/api/generate-content', async (req, res) => {
         const sectionIdx = section === 'lang_du' ? 4 : (section === 'dan_yin_jie' ? 1 : (section === 'duo_yin_jie' ? 2 : (section === 'xuan_ze' ? 3 : 5)));
         let allStaticItems = [];
         if (fs.existsSync(QUESTIONS_DIR)) {
-            // Match level-specific files (lX_sY) or universal files (sY.json)
             const files = fs.readdirSync(QUESTIONS_DIR).filter(f => 
                 f.endsWith('.json') && (f.startsWith(`l${grade}_s${sectionIdx}`) || f === `s${sectionIdx}.json`)
             );
