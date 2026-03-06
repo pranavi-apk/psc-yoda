@@ -25,6 +25,15 @@ const STATE = {
         currentPartIndex: 0,
         timeLeft: 0,
         isRecording: false
+    },
+    flashcard: {
+        queue: [],
+        currentIndex: 0,
+        currentCard: null,
+        isFlipped: false,
+        sessionCorrect: 0,
+        sessionWrong: 0,
+        coachingTips: {}
     }
 };
 
@@ -35,6 +44,9 @@ const screens = {
     themeSelection:  document.getElementById('theme-selection'),
     exercise:        document.getElementById('exercise'),
     report:          document.getElementById('report'),
+    flashcardList:   document.getElementById('flashcard-list'),
+    flashcardReview: document.getElementById('flashcard-review'),
+    masteryDashboard: document.getElementById('mastery-dashboard'),
     mockExamDashboard: document.getElementById('mock-exam-dashboard'),
     mockExamInstructions: document.getElementById('mock-exam-instructions'),
     mockExamSession:   document.getElementById('mock-exam-session'),
@@ -152,12 +164,15 @@ function switchScreen(name) {
         }
     }
 
-    // Toggle Mock Exam button in Navbar visibility (only hide on onboarding)
-    const navMockBtn = document.getElementById('nav-mock-btn');
-    if (navMockBtn) {
-        if (name === 'onboarding') navMockBtn.classList.add('hidden');
-        else navMockBtn.classList.remove('hidden');
-    }
+    // Toggle nav buttons visibility (only hide on onboarding)
+    const navBtns = ['nav-mock-btn', 'nav-flashcard-btn', 'nav-mastery-btn'];
+    navBtns.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            if (name === 'onboarding') btn.classList.add('hidden');
+            else btn.classList.remove('hidden');
+        }
+    });
 
     if (name === 'dashboard') {
         const gradeLabels = { 1: '一级 Grade 1', 2: '二级 Grade 2', 3: '三级 Grade 3' };
@@ -548,13 +563,14 @@ let audioContext, processor, input, stream;
 async function startRecording() {
     try {
         const isExam = STATE.activeSection === 'mock';
+        const isFC = STATE.activeSection === 'flashcard_review';
         const txtEl = isExam ? document.getElementById('exam-record-text') : document.getElementById('record-text');
         const bEl = isExam ? document.getElementById('exam-record-btn') : recordBtn;
 
         txtEl.innerText = 'Processing…';
 
         // ── Reset result display (only for practice) ──
-        if (!isExam) {
+        if (!isExam && !isFC) {
             resultArea.classList.add('hidden');
             document.querySelector('.circle').style.strokeDasharray = '0, 100';
             document.querySelector('.percentage').textContent = '…';
@@ -594,7 +610,7 @@ async function startRecording() {
         bEl.classList.add('recording');
         txtEl.innerText = 'Stop';
 
-        if (!isExam) {
+        if (!isExam && !isFC) {
             feedbackOverlay.style.display = 'none';
             targetTextEl.style.display = 'flex';
         }
@@ -608,8 +624,9 @@ async function startRecording() {
 function stopRecording() {
     if (!isRecording) return;
     isRecording = false;
-    
+
     const isExam = STATE.activeSection === 'mock';
+    const isFC = STATE.activeSection === 'flashcard_review';
     const bEl = isExam ? document.getElementById('exam-record-btn') : recordBtn;
     const txtEl = isExam ? document.getElementById('exam-record-text') : document.getElementById('record-text');
 
@@ -879,6 +896,69 @@ function renderResult(xmlStr) {
         errors:       detailedErrors,
         errorStats:   statsForHistory
     });
+
+    // ── Auto-collect errors into flashcard deck ──
+    if (detailedErrors.length > 0 && isMandarin) {
+        const wordNodes2 = metricsNode.getElementsByTagName('word');
+        const errorPayload = [];
+        for (let i = 0; i < wordNodes2.length; i++) {
+            const content = wordNodes2[i].getAttribute('content');
+            const syllNodes = wordNodes2[i].getElementsByTagName('syll');
+            let type = null;
+            for (let s = 0; s < syllNodes.length; s++) {
+                const dp = parseInt(syllNodes[s].getAttribute('dp_message') || '0');
+                if (dp === 16) { type = 'skipped'; break; }
+                if (dp === 32) { type = 'extra'; break; }
+                const phones = syllNodes[s].getElementsByTagName('phone');
+                for (let p = 0; p < phones.length; p++) {
+                    const isYun = parseInt(phones[p].getAttribute('is_yun') || '0');
+                    const err = parseInt(phones[p].getAttribute('perr_msg') || '0');
+                    if (isYun === 1 && err === 2) { if (!type || type === 'tone') type = 'tone'; }
+                    else if (err !== 0) { type = 'sound'; }
+                }
+                if (type === 'sound') break;
+            }
+            if (type && type !== 'extra') {
+                // Build pinyin: try exact match, then per-char lookup, then ISE syll content
+                let pinyin = '';
+                const exactMatch = STATE.currentChars.find(c => c.c === content);
+                if (exactMatch && exactMatch.p) {
+                    pinyin = exactMatch.p;
+                } else {
+                    // Per-character lookup (handles words split into individual chars)
+                    const perChar = content.split('').map(ch => {
+                        const cd = STATE.currentChars.find(c => c.c === ch);
+                        return cd ? cd.p : '';
+                    }).filter(Boolean);
+                    if (perChar.length > 0) {
+                        pinyin = perChar.join('');
+                    } else {
+                        // Last resort: ISE syll content (no tone marks but better than nothing)
+                        const syllPinyins = [];
+                        for (let s = 0; s < syllNodes.length; s++) {
+                            const sc = syllNodes[s].getAttribute('content') || '';
+                            if (sc) syllPinyins.push(sc);
+                        }
+                        pinyin = syllPinyins.join('');
+                    }
+                }
+                errorPayload.push({
+                    character: content,
+                    pinyin,
+                    error_type: type,
+                    section: STATE.activeSection
+                });
+            }
+        }
+        console.log('[FC Collect] errorPayload:', JSON.stringify(errorPayload));
+        if (errorPayload.length > 0) {
+            fetch('/api/flashcards/collect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ errors: errorPayload })
+            }).catch(e => console.warn('Flashcard collect failed:', e));
+        }
+    }
 
     // Tip / Yoda modal
     if (pct >= 90) {
@@ -1158,3 +1238,543 @@ window.revealAnswer = () => {
     STATE.currentText  = STATE.correctAnswer;
     STATE.currentChars = STATE.correctAnswer.split('').map(c => ({ c, p: '' }));
 };
+
+// ════════════════════════════════════════════════════════
+//   FLASHCARD LIST (Dictionary)
+// ════════════════════════════════════════════════════════
+
+let fcAllCards = [];
+let fcCurrentFilter = 'all';
+
+window.goToFlashcardList = async () => {
+    stopRecording();
+    switchScreen('flashcardList');
+    document.getElementById('fc-list-container').innerHTML = '<p style="color:var(--muted); text-align:center; padding:2rem">Loading...</p>';
+
+    try {
+        const res = await fetch('/api/flashcards/all');
+        fcAllCards = await res.json();
+        const dueCount = fcAllCards.filter(c => c.is_due).length;
+        document.getElementById('fc-list-due-badge').textContent = `${dueCount} due`;
+        fcCurrentFilter = 'all';
+        document.querySelectorAll('.fc-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+        renderFCList(fcAllCards);
+    } catch (e) {
+        document.getElementById('fc-list-container').innerHTML = '<p style="color:var(--red); text-align:center; padding:2rem">Failed to load cards</p>';
+    }
+};
+
+window.filterFCList = (filter) => {
+    fcCurrentFilter = filter;
+    document.querySelectorAll('.fc-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === String(filter)));
+    let filtered = fcAllCards;
+    if (filter === 'due') filtered = fcAllCards.filter(c => c.is_due);
+    else if (typeof filter === 'number') filtered = fcAllCards.filter(c => c.box === filter);
+    renderFCList(filtered);
+};
+
+function renderFCList(cards) {
+    const container = document.getElementById('fc-list-container');
+    if (cards.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted); text-align:center; padding:2rem">No cards found. Practice sections to collect error cards.</p>';
+        return;
+    }
+    const boxColors = ['#ff5f56', '#f39c12', '#f1c40f', '#2ecc71', '#E5BD4E'];
+    const boxNames = ['New', 'Learning', 'Reviewing', 'Familiar', 'Mastered'];
+    container.innerHTML =
+        '<div class="fc-list-header"><span>Char</span><span>Pinyin</span><span>Level</span><span>Play</span></div>' +
+        cards.map(c => {
+            const dueClass = c.is_due ? 'is-due' : '';
+            return `<div class="fc-list-item ${dueClass}">
+                <span class="fc-list-char">${c.character}</span>
+                <div class="fc-list-info">
+                    <span class="fc-list-pinyin">${c.pinyin || ''}</span>
+                    <span class="fc-list-meta">${c.times_wrong}x wrong · ${c.times_correct}x correct</span>
+                </div>
+                <span class="fc-list-box box-${c.box}" style="color:${boxColors[c.box]}">${boxNames[c.box]}</span>
+                <div class="fc-list-tts">
+                    <button onclick="playPronunciation('${c.character.replace(/'/g, "\\'")}')">🔊</button>
+                </div>
+            </div>`;
+        }).join('');
+}
+
+// ════════════════════════════════════════════════════════
+//   FLASHCARD REVIEW
+// ════════════════════════════════════════════════════════
+
+window.goToFlashcardReview = async () => {
+    stopRecording();
+    switchScreen('flashcardReview');
+
+    STATE.flashcard.queue = [];
+    STATE.flashcard.currentIndex = 0;
+    STATE.flashcard.isFlipped = false;
+    STATE.flashcard.iseProcessing = false;
+    STATE.flashcard.sessionCorrect = 0;
+    STATE.flashcard.sessionWrong = 0;
+    STATE.flashcard.coachingTips = {};
+
+    document.getElementById('fc-summary').classList.add('hidden');
+    document.getElementById('fc-empty').classList.add('hidden');
+    document.getElementById('fc-card-wrapper').style.display = '';
+
+    try {
+        const res = await fetch('/api/flashcards/due?limit=20');
+        const cards = await res.json();
+        STATE.flashcard.queue = cards;
+
+        if (cards.length === 0) {
+            document.getElementById('fc-card-wrapper').style.display = 'none';
+            document.getElementById('fc-empty').classList.remove('hidden');
+            return;
+        }
+
+        showFlashcard(0);
+    } catch (e) {
+        console.error('Failed to load flashcards:', e);
+    }
+};
+
+function showFlashcard(index) {
+    const queue = STATE.flashcard.queue;
+    if (index >= queue.length) {
+        showFlashcardSummary();
+        return;
+    }
+
+    const card = queue[index];
+    STATE.flashcard.currentCard = card;
+    STATE.flashcard.currentIndex = index;
+    STATE.flashcard.isFlipped = false;
+    STATE.flashcard.isRetry = false;
+    STATE.flashcard.iseProcessing = false;
+
+    document.getElementById('fc-progress').textContent = `${index + 1}/${queue.length}`;
+
+    // Show/hide prev button
+    const prevBtn = document.getElementById('fc-prev-btn');
+    if (prevBtn) prevBtn.classList.toggle('hidden', index === 0);
+
+    // Reset card and play entrance animation
+    const cardEl = document.getElementById('fc-card');
+    cardEl.classList.remove('flipped', 'slide-right', 'slide-left', 'slide-in');
+    // Force reflow so slide-in re-triggers
+    void cardEl.offsetWidth;
+    cardEl.classList.add('slide-in');
+
+    // Front — human-friendly box label
+    const boxClass = `box-${card.box}`;
+    const boxLabels = ['New', 'Learning', 'Reviewing', 'Familiar', 'Mastered'];
+    document.getElementById('fc-box-indicator').className = `fc-box-indicator ${boxClass}`;
+    document.getElementById('fc-box-indicator').textContent = boxLabels[card.box];
+    document.getElementById('fc-character').textContent = card.character;
+
+    // Reset score display
+    const scoreDisp = document.getElementById('fc-score-display');
+    scoreDisp.classList.add('hidden');
+    scoreDisp.textContent = '';
+    scoreDisp.className = 'fc-score-display hidden';
+
+    // Reset record button
+    const recBtn = document.querySelector('.fc-record-btn');
+    if (recBtn) { recBtn.textContent = '🎤 Record'; recBtn.style.background = ''; }
+
+    // Back
+    document.getElementById('fc-back-char').textContent = card.character;
+    document.getElementById('fc-back-pinyin').textContent = card.pinyin || '';
+
+    STATE.currentText = card.character;
+}
+
+// Flip = didn't know it = demote card
+window.flipFlashcard = () => {
+    if (STATE.flashcard.isFlipped) return;
+    STATE.flashcard.isFlipped = true;
+    STATE.flashcard.sessionWrong++;
+    document.getElementById('fc-card').classList.add('flipped');
+
+    // Demote card (score < 70 = wrong)
+    const card = STATE.flashcard.currentCard;
+    if (card) {
+        fetch('/api/flashcards/review', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ flashcard_id: card.id, score: 40, error_detail: null })
+        }).catch(() => {});
+    }
+};
+
+// Next from back side — just advance, card already demoted on flip
+window.fcNextFromBack = () => {
+    STATE.flashcard.currentCard = null;
+    const cardEl = document.getElementById('fc-card');
+    cardEl.classList.add('slide-right');
+    setTimeout(() => showFlashcard(STATE.flashcard.currentIndex + 1), 420);
+};
+
+// "Test Again" from back — flip back to front for recording, no box change (practice only)
+window.fcRetryFromBack = () => {
+    const card = STATE.flashcard.currentCard;
+    if (!card) return;
+    STATE.flashcard.isFlipped = false;
+    STATE.flashcard.isRetry = true; // Mark as retry — pass won't auto-advance
+    STATE.flashcard.iseProcessing = false;
+    document.getElementById('fc-card').classList.remove('flipped');
+    // Reset score display
+    const scoreDisp = document.getElementById('fc-score-display');
+    scoreDisp.classList.add('hidden');
+    scoreDisp.textContent = '';
+    scoreDisp.className = 'fc-score-display hidden';
+    // Reset record button
+    const recBtn = document.querySelector('.fc-record-btn');
+    if (recBtn) { recBtn.textContent = '🎤 Record'; recBtn.style.background = ''; }
+};
+
+// "I know this" — self-grade pass, skip forward
+window.fcSkipKnown = () => {
+    const card = STATE.flashcard.currentCard;
+    if (!card) return;
+    STATE.flashcard.sessionCorrect++;
+
+    fetch('/api/flashcards/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flashcard_id: card.id, score: 85, error_detail: null })
+    }).catch(() => {});
+
+    STATE.flashcard.currentCard = null;
+    const cardEl = document.getElementById('fc-card');
+    cardEl.classList.add('slide-right');
+    setTimeout(() => showFlashcard(STATE.flashcard.currentIndex + 1), 420);
+};
+
+window.fcPlayTTS = () => {
+    const card = STATE.flashcard.currentCard;
+    if (card) playPronunciation(card.character, 0.75, VOICE_MAP.female);
+};
+
+window.fcPrevCard = () => {
+    if (STATE.flashcard.currentIndex <= 0) return;
+    const cardEl = document.getElementById('fc-card');
+    cardEl.classList.add('slide-left');
+    setTimeout(() => showFlashcard(STATE.flashcard.currentIndex - 1), 420);
+};
+
+// ── ISE recording on flashcard front ──
+window.fcStartRecording = () => {
+    const card = STATE.flashcard.currentCard;
+    if (!card || STATE.flashcard.iseProcessing) return;
+    STATE.flashcard.iseProcessing = true;
+    STATE.currentText = card.character;
+    STATE.activeSection = 'flashcard_review';
+
+    const recBtn = document.querySelector('.fc-record-btn');
+    if (recBtn) { recBtn.textContent = '🔴 Recording...'; recBtn.style.background = 'rgba(255,95,86,0.25)'; }
+
+    startRecording();
+
+    const duration = card.character.length <= 2 ? 3000 : 5000;
+    setTimeout(() => { if (isRecording) stopRecording(); }, duration);
+};
+
+// Hook ISE result for flashcard review mode
+socket.off('ise-result');
+socket.on('ise-result', (data) => {
+    if (STATE.activeSection === 'flashcard_review') {
+        if (data.status !== 2) return;
+        if (!STATE.flashcard.iseProcessing) return;
+        STATE.flashcard.iseProcessing = false;
+
+        const recBtn = document.querySelector('.fc-record-btn');
+        if (recBtn) { recBtn.textContent = '🎤 Record'; recBtn.style.background = ''; }
+
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(data.xml, 'text/xml');
+        const recPaper = xmlDoc.getElementsByTagName('rec_paper')[0];
+        let metricsNode = null;
+        if (recPaper) {
+            metricsNode = recPaper.getElementsByTagName('read_sentence')[0] ||
+                          recPaper.getElementsByTagName('read_word')[0] ||
+                          recPaper.getElementsByTagName('read_syllable')[0] ||
+                          recPaper.firstElementChild;
+        }
+        if (!metricsNode) return;
+
+        const totalScore = parseFloat(metricsNode.getAttribute('total_score') || 0);
+        const pass = totalScore >= 70;
+
+        // Show score on front
+        const scoreDisp = document.getElementById('fc-score-display');
+        scoreDisp.textContent = `${Math.round(totalScore)} pts`;
+        scoreDisp.className = `fc-score-display ${pass ? 'pass' : 'fail'}`;
+        scoreDisp.classList.remove('hidden');
+
+        // Auto-advance if passed (Duolingo style) — but NOT on retry (practice only)
+        if (pass && !STATE.flashcard.isRetry) {
+            STATE.flashcard.sessionCorrect++;
+            const card = STATE.flashcard.currentCard;
+            if (card) {
+                fetch('/api/flashcards/review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ flashcard_id: card.id, score: totalScore, error_detail: null })
+                }).catch(() => {});
+                STATE.flashcard.currentCard = null;
+            }
+            setTimeout(() => {
+                const cardEl = document.getElementById('fc-card');
+                cardEl.classList.add('slide-right');
+                setTimeout(() => showFlashcard(STATE.flashcard.currentIndex + 1), 420);
+            }, 600); // brief pause to see score, then auto-slide
+        }
+    } else {
+        renderResult(data.xml);
+    }
+});
+
+function showFlashcardSummary() {
+    document.getElementById('fc-card-wrapper').style.display = 'none';
+    const summary = document.getElementById('fc-summary');
+    summary.classList.remove('hidden');
+
+    const total = STATE.flashcard.sessionCorrect + STATE.flashcard.sessionWrong;
+    document.getElementById('fc-summary-stats').innerHTML = `
+        <div class="fc-stat-item"><div class="fc-stat-val">${total}</div><div class="fc-stat-label">Cards Reviewed</div></div>
+        <div class="fc-stat-item"><div class="fc-stat-val" style="color:#2ecc71">${STATE.flashcard.sessionCorrect}</div><div class="fc-stat-label">Correct</div></div>
+        <div class="fc-stat-item"><div class="fc-stat-val" style="color:#ff5f56">${STATE.flashcard.sessionWrong}</div><div class="fc-stat-label">Again</div></div>
+        <div class="fc-stat-item"><div class="fc-stat-val">${total > 0 ? Math.round(STATE.flashcard.sessionCorrect / total * 100) : 0}%</div><div class="fc-stat-label">Accuracy</div></div>
+    `;
+}
+
+// ════════════════════════════════════════════════════════
+//   MASTERY DASHBOARD
+// ════════════════════════════════════════════════════════
+
+window.goToMasteryDashboard = async () => {
+    stopRecording();
+    switchScreen('masteryDashboard');
+    await loadMasteryData();
+};
+
+async function loadMasteryData() {
+    try {
+        const res = await fetch('/api/flashcards/stats');
+        const stats = await res.json();
+        renderMasteryRing(stats.masteryPercent, stats.total);
+        renderMasteryBars(stats.byBox, stats.total);
+        renderErrorDonut(stats.byErrorType);
+        renderSparkline(stats.recentReviews);
+        renderHeatmap(stats.patterns);
+        document.getElementById('mastery-total').textContent = `${stats.total} cards total`;
+    } catch (e) {
+        console.error('Failed to load mastery data:', e);
+    }
+}
+
+function renderMasteryRing(pct, total) {
+    const r = 54, cx = 65, cy = 65, sw = 10;
+    const circ = 2 * Math.PI * r;
+    const offset = circ - (pct / 100) * circ;
+    document.getElementById('mastery-ring').innerHTML = `
+        <svg width="130" height="130" viewBox="0 0 130 130">
+            <defs>
+                <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#D4AF37"/>
+                    <stop offset="100%" style="stop-color:#F5D76E"/>
+                </linearGradient>
+            </defs>
+            <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="${sw}"/>
+            <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="url(#ring-grad)" stroke-width="${sw}"
+                stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+                transform="rotate(-90 ${cx} ${cy})" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1);
+                filter: drop-shadow(0 0 8px rgba(212,175,55,0.5))"/>
+            <text x="${cx}" y="${cy + 5}" text-anchor="middle" fill="var(--text)" font-size="22" font-weight="800" font-family="var(--font)">${Math.round(pct)}%</text>
+            <text x="${cx}" y="${cy + 20}" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="600">MASTERY</text>
+        </svg>
+    `;
+}
+
+function renderMasteryBars(byBox, total) {
+    const colors = ['#ff5f56', '#f39c12', '#f1c40f', '#2ecc71', '#E5BD4E'];
+    const labels = ['Box 0', 'Box 1', 'Box 2', 'Box 3', 'Box 4'];
+    const maxCount = Math.max(...byBox, 1);
+
+    document.getElementById('mastery-bars').innerHTML = byBox.map((count, i) => {
+        const pct = (count / maxCount) * 100;
+        return `<div class="mastery-bar-row">
+            <span class="mastery-bar-label" style="color:${colors[i]}">${labels[i]}</span>
+            <div class="mastery-bar-track">
+                <div class="mastery-bar-fill" style="width:${pct}%; background:${colors[i]}">${count > 0 ? count : ''}</div>
+            </div>
+            <span class="mastery-bar-count">${count}</span>
+        </div>`;
+    }).join('');
+}
+
+function renderErrorDonut(byErrorType) {
+    const types = Object.entries(byErrorType);
+    const total = types.reduce((s, [, v]) => s + v, 0);
+    if (total === 0) {
+        document.getElementById('mastery-donut').innerHTML = '<p style="color:var(--muted)">No data yet</p>';
+        return;
+    }
+
+    const colors = { tone: '#f39c12', sound: '#ff5f56', skipped: '#95a5a6' };
+    let cumAngle = 0;
+    const r = 45, cx = 55, cy = 55;
+    let paths = '';
+    const legend = [];
+
+    types.forEach(([type, count]) => {
+        const angle = (count / total) * 360;
+        const startRad = (cumAngle - 90) * Math.PI / 180;
+        const endRad = (cumAngle + angle - 90) * Math.PI / 180;
+        const large = angle > 180 ? 1 : 0;
+        const x1 = cx + r * Math.cos(startRad);
+        const y1 = cy + r * Math.sin(startRad);
+        const x2 = cx + r * Math.cos(endRad);
+        const y2 = cy + r * Math.sin(endRad);
+        const color = colors[type] || '#666';
+        paths += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z" fill="${color}" opacity="0.8"/>`;
+        legend.push(`<span><span class="donut-dot" style="background:${color}"></span>${type}: ${count} (${Math.round(count/total*100)}%)</span>`);
+        cumAngle += angle;
+    });
+
+    document.getElementById('mastery-donut').innerHTML = `
+        <svg width="110" height="110" viewBox="0 0 110 110">${paths}
+            <circle cx="${cx}" cy="${cy}" r="25" fill="var(--bg)"/>
+        </svg>
+        <div class="mastery-donut-legend">${legend.join('')}</div>
+    `;
+}
+
+function renderSparkline(reviews) {
+    if (!reviews || reviews.length < 2) {
+        document.getElementById('mastery-sparkline').innerHTML = '<p style="color:var(--muted)">Need more reviews for trend data</p>';
+        return;
+    }
+
+    const scores = reviews.slice(0, 50).reverse().map(r => r.score || 0);
+    const w = 600, h = 80, pad = 10;
+    const minS = Math.min(...scores), maxS = Math.max(...scores, 1);
+    const rangeS = maxS - minS || 1;
+
+    const points = scores.map((s, i) => {
+        const x = pad + (i / (scores.length - 1)) * (w - 2 * pad);
+        const y = h - pad - ((s - minS) / rangeS) * (h - 2 * pad);
+        return `${x},${y}`;
+    }).join(' ');
+
+    document.getElementById('mastery-sparkline').innerHTML = `
+        <svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+            <defs>
+                <linearGradient id="spark-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" style="stop-color:var(--gold); stop-opacity:0.3"/>
+                    <stop offset="100%" style="stop-color:var(--gold); stop-opacity:0"/>
+                </linearGradient>
+            </defs>
+            <polygon points="${pad},${h - pad} ${points} ${w - pad},${h - pad}" fill="url(#spark-grad)"/>
+            <polyline points="${points}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="${pad}" y1="${h - pad - (70 - minS) / rangeS * (h - 2 * pad)}" x2="${w - pad}" y2="${h - pad - (70 - minS) / rangeS * (h - 2 * pad)}" stroke="rgba(46,204,113,0.3)" stroke-dasharray="4,4"/>
+            <text x="${w - pad}" y="${h - pad - (70 - minS) / rangeS * (h - 2 * pad) - 4}" fill="rgba(46,204,113,0.5)" font-size="10" text-anchor="end">pass=70</text>
+        </svg>
+    `;
+}
+
+function renderHeatmap(patterns) {
+    if (!patterns || patterns.length === 0) {
+        document.getElementById('mastery-heatmap').innerHTML = '<p style="color:var(--muted)">Run AI Diagnosis to detect interference patterns</p>';
+        return;
+    }
+
+    document.getElementById('mastery-heatmap').innerHTML = patterns.map((p, i) => {
+        const severity = p.severity || 0;
+        const color = severity >= 0.7 ? '#ff5f56' : severity >= 0.4 ? '#f39c12' : '#f1c40f';
+        const cards = p.affected_cards ? JSON.parse(p.affected_cards) : [];
+        return `<div class="heatmap-item" onclick="this.classList.toggle('expanded')">
+            <div class="heatmap-header">
+                <span class="heatmap-severity" style="background:${color}"></span>
+                <span class="heatmap-name">${p.pattern_name}</span>
+                <span class="heatmap-meta">${cards.length} cards · ${Math.round(severity * 100)}% severity</span>
+            </div>
+            <div class="heatmap-detail">${p.description || ''}\n\n${p.genai_diagnosis || ''}</div>
+        </div>`;
+    }).join('');
+}
+
+window.runDiagnosis = async () => {
+    const btn = document.querySelector('.mastery-heatmap-card .complete-btn');
+    if (btn) btn.textContent = 'Analyzing...';
+    try {
+        await fetch('/api/flashcards/diagnose', { method: 'POST' });
+        await loadMasteryData();
+    } catch (e) {
+        console.error('Diagnosis failed:', e);
+    }
+    if (btn) btn.textContent = 'Refresh AI Diagnosis';
+};
+
+// ── Smart Practice ──
+window.startSmartPractice = async () => {
+    const btn = document.getElementById('smart-practice-btn');
+    const resultEl = document.getElementById('smart-practice-result');
+    btn.textContent = 'Generating...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('/api/flashcards/generate-sentence', { method: 'POST' });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        const weakSet = new Set(data.weakChars || []);
+        const textHtml = (data.chars || []).map(c => {
+            if (!c.p) return c.c;
+            return weakSet.has(c.c) ? `<span class="weak-char">${c.c}</span>` : c.c;
+        }).join('');
+        const pinyinStr = (data.chars || []).filter(c => c.p).map(c => c.p).join(' ');
+
+        resultEl.classList.remove('hidden');
+        resultEl.innerHTML = `
+            <div class="smart-practice-text">${textHtml}</div>
+            <div class="smart-practice-pinyin">${pinyinStr}</div>
+            <div class="smart-practice-actions">
+                <button class="listen-btn female-btn" onclick="playPronunciation('${data.text.replace(/'/g, "\\'")}', 0.75, VOICE_MAP.female)">♀ Listen</button>
+                <button class="listen-btn male-btn" onclick="playPronunciation('${data.text.replace(/'/g, "\\'")}', 0.75, VOICE_MAP.male)">♂ Listen</button>
+            </div>
+        `;
+    } catch (e) {
+        resultEl.classList.remove('hidden');
+        resultEl.innerHTML = `<p style="color:var(--red)">${e.message || 'Failed to generate'}</p>`;
+    }
+    btn.textContent = 'Practice Your Weakest Patterns';
+    btn.disabled = false;
+};
+
+// ── Update dashboard flashcard stats on load ──
+async function updateDashboardFCStats() {
+    try {
+        const [dueRes, statsRes] = await Promise.all([
+            fetch('/api/flashcards/due?limit=100'),
+            fetch('/api/flashcards/stats')
+        ]);
+        const due = await dueRes.json();
+        const stats = await statsRes.json();
+        const dueEl = document.getElementById('fc-due-count');
+        const mastEl = document.getElementById('fc-mastery-display');
+        if (dueEl) dueEl.textContent = `${due.length} due`;
+        if (mastEl) mastEl.textContent = `${Math.round(stats.masteryPercent)}% mastery`;
+    } catch (e) { /* silent */ }
+}
+
+// Run on page load and when returning to dashboard
+const origSwitchScreen = switchScreen;
+// We can't reassign switchScreen since it's a function declaration, so we hook via goToDashboard
+const origGoToDashboard = window.goToDashboard;
+window.goToDashboard = () => {
+    origGoToDashboard();
+    updateDashboardFCStats();
+};
+
+// Initial load
+setTimeout(updateDashboardFCStats, 1000);

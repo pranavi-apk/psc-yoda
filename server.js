@@ -7,6 +7,8 @@ const WebSocket = require('ws');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
+const Database = require('better-sqlite3');
+const { pinyin } = require('pinyin-pro');
 
 const app = express();
 const server = http.createServer(app);
@@ -14,6 +16,31 @@ const io = socketIo(server);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ─── SQLite Database Init ────────────────────────────────────────────────
+const db = new Database(path.join(__dirname, 'db', 'yoda.db'));
+db.pragma('journal_mode = WAL');
+const schema = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf-8');
+db.exec(schema);
+console.log('SQLite database initialized');
+
+// ─── Auto-backfill missing pinyin ────────────────────────────────────────
+(() => {
+    const missing = db.prepare("SELECT id, character FROM flashcards WHERE pinyin = '' OR pinyin IS NULL").all();
+    if (missing.length > 0) {
+        const update = db.prepare("UPDATE flashcards SET pinyin = ? WHERE id = ?");
+        const backfill = db.transaction((rows) => {
+            let count = 0;
+            for (const row of rows) {
+                const py = pinyin(row.character, { toneType: 'symbol', type: 'string' });
+                if (py) { update.run(py, row.id); count++; }
+            }
+            return count;
+        });
+        const count = backfill(missing);
+        console.log(`Backfilled pinyin for ${count} flashcards`);
+    }
+})();
 
 // ─── Pixabay Config ──────────────────────────────────────────────────────────
 const PIXABAY_KEY = '54890520-5361b01bd79c68d8fb64b86d5'; // pixabay.com/api
@@ -466,6 +493,263 @@ Color scores: green if >=80, orange if >=60, red if <60.`
     } catch (e) {
         console.error('Report error:', e);
         res.status(500).json({ error: 'Failed to generate report' });
+    }
+});
+
+// ─── Flashcard API Endpoints ─────────────────────────────────────────────
+
+// Leitner box intervals in SQLite datetime offset format
+const BOX_INTERVALS = ['0 seconds', '1 hours', '8 hours', '1 days', '3 days'];
+
+// POST /api/flashcards/collect — ingest errors from ISE results
+app.post('/api/flashcards/collect', (req, res) => {
+    const { errors } = req.body;
+    if (!Array.isArray(errors) || errors.length === 0) {
+        return res.json({ collected: 0 });
+    }
+
+    const upsert = db.prepare(`
+        INSERT INTO flashcards (character, pinyin, error_type, source_section, box, next_review_at, times_wrong)
+        VALUES (?, ?, ?, ?, 0, datetime('now'), 1)
+        ON CONFLICT(character) DO UPDATE SET
+            times_wrong = times_wrong + 1,
+            box = MAX(box - 1, 0),
+            next_review_at = datetime('now'),
+            error_type = excluded.error_type,
+            pinyin = CASE WHEN flashcards.pinyin = '' OR flashcards.pinyin IS NULL THEN excluded.pinyin ELSE flashcards.pinyin END,
+            source_section = CASE WHEN flashcards.source_section = '' OR flashcards.source_section IS NULL THEN excluded.source_section ELSE flashcards.source_section END,
+            updated_at = datetime('now')
+    `);
+
+    const insertMany = db.transaction((errs) => {
+        let count = 0;
+        for (const e of errs) {
+            if (e.character) {
+                const py = e.pinyin || pinyin(e.character, { toneType: 'symbol', type: 'string' }) || '';
+                upsert.run(e.character, py, e.error_type || 'sound', e.section || '');
+                count++;
+            }
+        }
+        return count;
+    });
+
+    const count = insertMany(errors);
+    res.json({ collected: count });
+});
+
+// POST /api/flashcards/backfill-pinyin — update pinyin for cards missing it
+app.post('/api/flashcards/backfill-pinyin', (req, res) => {
+    const { updates } = req.body; // [{character, pinyin}, ...]
+    if (!Array.isArray(updates)) return res.json({ updated: 0 });
+    const stmt = db.prepare(`UPDATE flashcards SET pinyin = ?, updated_at = datetime('now') WHERE character = ? AND (pinyin = '' OR pinyin IS NULL)`);
+    const run = db.transaction((items) => {
+        let count = 0;
+        for (const u of items) {
+            if (u.character && u.pinyin) {
+                const r = stmt.run(u.pinyin, u.character);
+                count += r.changes;
+            }
+        }
+        return count;
+    });
+    const count = run(updates);
+    res.json({ updated: count });
+});
+
+// GET /api/flashcards/all — get all cards for dictionary list
+app.get('/api/flashcards/all', (req, res) => {
+    const cards = db.prepare(`
+        SELECT *, CASE WHEN next_review_at <= datetime('now') THEN 1 ELSE 0 END as is_due
+        FROM flashcards ORDER BY updated_at DESC, times_wrong DESC
+    `).all();
+    res.json(cards);
+});
+
+// GET /api/flashcards/due — get cards due for review
+app.get('/api/flashcards/due', (req, res) => {
+    const limit = parseInt(req.query.limit) || 20;
+    const cards = db.prepare(`
+        SELECT * FROM flashcards
+        WHERE next_review_at <= datetime('now')
+        ORDER BY box ASC, times_wrong DESC
+        LIMIT ?
+    `).all(limit);
+    res.json(cards);
+});
+
+// POST /api/flashcards/review — submit review result, update box
+app.post('/api/flashcards/review', (req, res) => {
+    const { flashcard_id, score, error_detail } = req.body;
+    const card = db.prepare('SELECT * FROM flashcards WHERE id = ?').get(flashcard_id);
+    if (!card) return res.status(404).json({ error: 'Card not found' });
+
+    const wasCorrect = (score >= 70) ? 1 : 0;
+    const boxBefore = card.box;
+    let boxAfter;
+
+    if (wasCorrect) {
+        boxAfter = Math.min(card.box + 1, 4);
+    } else {
+        boxAfter = card.box === 4 ? 2 : Math.max(card.box - 1, 0);
+    }
+
+    const interval = BOX_INTERVALS[boxAfter];
+
+    db.prepare(`
+        UPDATE flashcards SET
+            box = ?,
+            next_review_at = datetime('now', '+${interval}'),
+            times_correct = times_correct + ?,
+            times_wrong = times_wrong + ?,
+            updated_at = datetime('now')
+        WHERE id = ?
+    `).run(boxAfter, wasCorrect, 1 - wasCorrect, flashcard_id);
+
+    db.prepare(`
+        INSERT INTO review_history (flashcard_id, score, was_correct, error_detail, box_before, box_after)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `).run(flashcard_id, score, wasCorrect, error_detail || null, boxBefore, boxAfter);
+
+    res.json({ boxBefore, boxAfter, wasCorrect });
+});
+
+// GET /api/flashcards/stats — mastery dashboard data
+app.get('/api/flashcards/stats', (req, res) => {
+    const total = db.prepare('SELECT COUNT(*) as cnt FROM flashcards').get().cnt;
+    const byBox = [0, 1, 2, 3, 4].map(b =>
+        db.prepare('SELECT COUNT(*) as cnt FROM flashcards WHERE box = ?').get(b).cnt
+    );
+    const box3 = byBox[3], box4 = byBox[4];
+    const masteryPercent = total > 0 ? ((box3 * 0.75 + box4 * 1.0) / total * 100) : 0;
+
+    const byErrorType = {};
+    db.prepare('SELECT error_type, COUNT(*) as cnt FROM flashcards GROUP BY error_type').all()
+        .forEach(r => { byErrorType[r.error_type] = r.cnt; });
+
+    const recentReviews = db.prepare(`
+        SELECT rh.*, f.character, f.pinyin FROM review_history rh
+        JOIN flashcards f ON f.id = rh.flashcard_id
+        ORDER BY rh.reviewed_at DESC LIMIT 50
+    `).all();
+
+    const patterns = db.prepare('SELECT * FROM error_patterns ORDER BY severity DESC').all();
+
+    res.json({ total, byBox, masteryPercent: Math.round(masteryPercent * 10) / 10, byErrorType, recentReviews, patterns });
+});
+
+// POST /api/flashcards/diagnose — GenAI Cantonese interference analysis
+app.post('/api/flashcards/diagnose', async (req, res) => {
+    const cards = db.prepare('SELECT * FROM flashcards WHERE times_wrong > 0').all();
+    if (cards.length === 0) return res.json({ patterns: [] });
+
+    // Pre-classify by phonetic pattern
+    const groups = { retroflex: [], nasal_final: [], ln_confusion: [], tone3_sandhi: [], other: [] };
+    for (const c of cards) {
+        const p = (c.pinyin || '').toLowerCase();
+        if (c.error_type === 'sound' && /^(zh|ch|sh|r)/.test(p)) groups.retroflex.push(c);
+        else if (c.error_type === 'sound' && /[iī́ǐì]n[g]?$/.test(p)) groups.nasal_final.push(c);
+        else if (c.error_type === 'sound' && /^[ln]/.test(p)) groups.ln_confusion.push(c);
+        else if (c.error_type === 'tone') groups.tone3_sandhi.push(c);
+        else groups.other.push(c);
+    }
+
+    const groupSummary = Object.entries(groups)
+        .filter(([, arr]) => arr.length > 0)
+        .map(([name, arr]) => `${name}: ${arr.map(c => `${c.character}(${c.pinyin}, wrong=${c.times_wrong})`).join(', ')}`)
+        .join('\n');
+
+    try {
+        const messages = [
+            {
+                role: 'system',
+                content: `You are a PSC pronunciation coach specializing in Cantonese-to-Mandarin transfer errors.
+Analyze these error groups and return ONLY valid JSON, no markdown:
+{"patterns": [{"name": "pattern name", "type": "cantonese_interference|tone_pattern|phonetic_category", "description": "why Cantonese speakers make this error", "tip": "specific articulatory tip", "severity": 0.0-1.0, "affected_chars": ["char1","char2"]}], "learning_path": ["char1","char2","...ordered by priority"]}`
+            },
+            { role: 'user', content: `Analyze these error groups from a Cantonese speaker:\n${groupSummary}` }
+        ];
+        const raw = await callAzureOpenAI(messages, 800);
+        const cleaned = raw.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+        const result = JSON.parse(cleaned);
+
+        // Save patterns to DB
+        db.prepare('DELETE FROM error_patterns').run();
+        const insertP = db.prepare(`
+            INSERT INTO error_patterns (pattern_name, pattern_type, description, affected_cards, severity, genai_diagnosis)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `);
+        if (result.patterns) {
+            for (const p of result.patterns) {
+                insertP.run(p.name, p.type, p.description, JSON.stringify(p.affected_chars || []), p.severity || 0, p.tip || '');
+            }
+        }
+
+        res.json(result);
+    } catch (e) {
+        console.error('Diagnose error:', e.message);
+        // Return cached patterns from DB
+        const cached = db.prepare('SELECT * FROM error_patterns ORDER BY severity DESC').all();
+        res.json({ patterns: cached, cached: true });
+    }
+});
+
+// POST /api/flashcards/generate-sentence — GenAI adaptive sentence with weak chars
+app.post('/api/flashcards/generate-sentence', async (req, res) => {
+    const weakCards = db.prepare(`
+        SELECT character, pinyin FROM flashcards
+        WHERE box <= 1 AND times_wrong > 0
+        ORDER BY times_wrong DESC LIMIT 6
+    `).all();
+
+    if (weakCards.length === 0) {
+        return res.status(400).json({ error: 'No weak characters to practice' });
+    }
+
+    const charList = weakCards.map(c => `${c.character}(${c.pinyin})`).join(', ');
+
+    try {
+        const messages = [
+            {
+                role: 'system',
+                content: `You are a PSC practice sentence generator. Create a natural, grammatically correct Mandarin sentence (15-25 characters) that includes as many of the given weak characters as possible. Return ONLY valid JSON:
+{"text": "full sentence", "chars": [{"c": "字", "p": "pīnyīn"}, {"c": "，", "p": ""}, ...]}
+Rules: Include tone marks in pinyin. Punctuation gets p="". Make the sentence sound natural, not forced.`
+            },
+            { role: 'user', content: `Create a practice sentence using these weak characters: ${charList}` }
+        ];
+        const raw = await callAzureOpenAI(messages, 500);
+        const cleaned = raw.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+        const result = JSON.parse(cleaned);
+        result.weakChars = weakCards.map(c => c.character);
+        res.json(result);
+    } catch (e) {
+        console.error('Generate sentence error:', e.message);
+        res.status(500).json({ error: 'Failed to generate sentence' });
+    }
+});
+
+// POST /api/flashcards/coaching-tips — GenAI batch coaching tips
+app.post('/api/flashcards/coaching-tips', async (req, res) => {
+    const { cards } = req.body;
+    if (!Array.isArray(cards) || cards.length === 0) return res.json({ tips: {} });
+
+    const cardDescs = cards.slice(0, 10).map(c => `${c.character}(${c.pinyin}, error=${c.error_type})`).join(', ');
+
+    try {
+        const messages = [
+            {
+                role: 'system',
+                content: `You are a PSC coach for Cantonese speakers. For each character, provide a brief coaching tip (1-2 sentences) focusing on the specific error type. Return ONLY valid JSON:
+{"tips": {"character1": "tip text", "character2": "tip text", ...}}`
+            },
+            { role: 'user', content: `Give coaching tips for: ${cardDescs}` }
+        ];
+        const raw = await callAzureOpenAI(messages, 600);
+        const cleaned = raw.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+        res.json(JSON.parse(cleaned));
+    } catch (e) {
+        console.error('Coaching tips error:', e.message);
+        res.json({ tips: {} });
     }
 });
 
