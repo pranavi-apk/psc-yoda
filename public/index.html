@@ -19,7 +19,8 @@
                 <span class="logo-text">Yoda <span class="gold">優答</span></span>
             </a>
         </div>
-        <div class="nav-actions">
+        <div class="nav-actions" style="display: flex; gap: 10px;">
+            <button id="nav-report-btn" class="special-btn" onclick="completeSession()">📊 Report Card</button>
             <button id="nav-mock-btn" class="special-btn hidden" onclick="goToMockExamDashboard()">📝 Mock Exam Mode</button>
         </div>
     </nav>
@@ -124,6 +125,13 @@
                 <h3>命题说话</h3>
                 <p>3-min free talk on a given topic.</p>
                 <div class="psc-badge">Section 5</div>
+            </div>
+            <!-- Playground -->
+            <div class="bento-card special" onclick="goToPlaygroundDashboard()">
+                <div class="card-icon">🎮</div>
+                <h3>Playground</h3>
+                <p>Interactive mini-games to train your ear and pronunciation.</p>
+                <div class="psc-badge">Fun</div>
             </div>
         </div>
     </section>
@@ -437,7 +445,158 @@
         </div>
     </section>
 
+    <!-- PLAYGROUND DASHBOARD -->
+    <section id="playground-dashboard" class="screen">
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToDashboard()">← Back</button>
+            <h2>Training Playground 🎮</h2>
+            <p>Scientifically-proven interactive games for Cantonese speakers to train Mandarin pronunciation and ear.</p>
+        </div>
+
+        <div class="bento-grid" style="overflow-y:auto; max-height: calc(100vh - 180px);">
+            <div class="bento-card" onclick="startPlaygroundGame('dan_yin_jie')">
+                <div class="card-icon">👂字</div>
+                <h3>Audio Guessing – Single Syllables</h3>
+                <p>Listen and identify the correct single character. Focus on initial and final sounds.</p>
+                <div class="psc-badge">Section 1 Focus</div>
+            </div>
+            <div class="bento-card" onclick="startPlaygroundGame('duo_yin_jie')">
+                <div class="card-icon">👂词</div>
+                <h3>Audio Guessing – Multi Syllables</h3>
+                <p>Listen and identify the correct multi-character word. Focus on tone sandhi.</p>
+                <div class="psc-badge">Section 2 Focus</div>
+            </div>
+            <div class="bento-card" onclick="startMatchGame()">
+                <div class="card-icon">🔗</div>
+                <h3>Retroflex Match-Up</h3>
+                <p>Match similar-sounding retroflex pinyin (zh/ch/sh) to their correct characters. Left pinyin, right characters.</p>
+                <div class="psc-badge">Section 1 Focus</div>
+            </div>
+            <div class="bento-card" onclick="startToneGame()">
+                <div class="card-icon">🎵</div>
+                <h3>Tone Identification Challenge</h3>
+                <p>Listen to a word and identify which tone it uses — 1st, 2nd, 3rd, 4th, or neutral.</p>
+                <div class="psc-badge">All Sections</div>
+            </div>
+            <div class="bento-card" onclick="startMinimalPairsGame()">
+                <div class="card-icon">🎯</div>
+                <h3>Minimal Pairs Battle</h3>
+                <p>Two similar sounds played. Identify which one you heard! Targets retroflex vs flat initials specifically.</p>
+                <div class="psc-badge">Section 1 Focus</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PLAYGROUND GAME AREA (Audio Guessing) -->
+    <section id="playground-game" class="screen pg-mode">
+        <div class="exam-header" style="justify-content: space-between;">
+            <button class="back-btn" style="margin: 0;" onclick="goToPlaygroundDashboard()">← Quit</button>
+            <h2 id="pg-game-title">Audio Guessing</h2>
+            <div style="width: 80px;"></div> <!-- Spacer -->
+        </div>
+
+        <div class="pg-content-container">
+            <p class="pg-prompt-text">Which word did you hear?</p>
+            
+            <button id="pg-play-audio-btn" class="pg-audio-btn" onclick="playPlaygroundAudio()">
+                <div class="pg-pulse-ring"></div>
+                <span class="pg-audio-icon">🔊</span>
+            </button>
+
+            <div id="pg-options-grid" class="pg-options-grid">
+                <!-- Buttons injected by JS -->
+            </div>
+            
+            <div id="pg-feedback-area" class="pg-feedback-area hidden">
+                <div class="pg-feedback-content">
+                    <span id="pg-feedback-icon" class="pg-icon"></span>
+                    <strong id="pg-feedback-text" class="pg-text"></strong>
+                </div>
+                <button id="pg-next-btn" class="pg-action-btn" onclick="nextPlaygroundTurn()">Next Question</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- MATCH GAME AREA (Retroflex Match-Up) -->
+    <section id="match-game" class="screen pg-mode">
+        <div class="exam-header" style="justify-content: space-between;">
+            <button class="back-btn" style="margin: 0;" onclick="goToPlaygroundDashboard()">← Quit</button>
+            <h2>Retroflex Match-Up 🔗</h2>
+            <div id="match-score-display" class="psc-badge" style="font-size:1rem; white-space: nowrap;"></div>
+        </div>
+        <p class="pg-prompt-text" style="margin-bottom: 1rem;">Match the pinyin on the left to the correct character on the right.</p>
+        <div class="match-game-board">
+            <div id="match-left-col" class="match-col"></div>
+            <div id="match-right-col" class="match-col"></div>
+        </div>
+        <div id="match-feedback" class="pg-feedback-area hidden" style="position:static; margin-top: 1rem;">
+            <div class="pg-feedback-content">
+                <span id="match-feedback-icon" class="pg-icon"></span>
+                <strong id="match-feedback-text" class="pg-text"></strong>
+            </div>
+            <button class="pg-action-btn" onclick="startMatchGame()">Play Again</button>
+        </div>
+    </section>
+
+    <!-- TONE GAME AREA -->
+    <section id="tone-game" class="screen pg-mode">
+        <div class="exam-header" style="justify-content: space-between;">
+            <button class="back-btn" style="margin: 0;" onclick="goToPlaygroundDashboard()">← Quit</button>
+            <h2>Tone Challenge 🎵</h2>
+            <div style="width: 80px;"></div>
+        </div>
+        <div class="pg-content-container">
+            <p class="pg-prompt-text">Which tone did you hear?</p>
+            <button id="tone-play-btn" class="pg-audio-btn" onclick="playToneAudio()">
+                <div class="pg-pulse-ring"></div>
+                <span class="pg-audio-icon">🔊</span>
+            </button>
+            <div class="tone-btn-grid">
+                <button class="tone-choice-btn" onclick="handleToneGuess(1)"><span class="tone-num">1st</span><span class="tone-mark">ā</span></button>
+                <button class="tone-choice-btn" onclick="handleToneGuess(2)"><span class="tone-num">2nd</span><span class="tone-mark">á</span></button>
+                <button class="tone-choice-btn" onclick="handleToneGuess(3)"><span class="tone-num">3rd</span><span class="tone-mark">ǎ</span></button>
+                <button class="tone-choice-btn" onclick="handleToneGuess(4)"><span class="tone-num">4th</span><span class="tone-mark">à</span></button>
+                <button class="tone-choice-btn" style="grid-column: span 2;" onclick="handleToneGuess(5)"><span class="tone-num">Neutral</span><span class="tone-mark">a</span></button>
+            </div>
+            <div id="tone-feedback" class="pg-feedback-area hidden" style="position:static; margin-top:1rem;">
+                <div class="pg-feedback-content">
+                    <span id="tone-feedback-icon" class="pg-icon"></span>
+                    <strong id="tone-feedback-text" class="pg-text"></strong>
+                </div>
+                <button class="pg-action-btn" onclick="nextToneTurn()">Next Question</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- MINIMAL PAIRS AREA -->
+    <section id="minimal-pairs-game" class="screen pg-mode">
+        <div class="exam-header" style="justify-content: space-between;">
+            <button class="back-btn" style="margin: 0;" onclick="goToPlaygroundDashboard()">← Quit</button>
+            <h2>Minimal Pairs 🎯</h2>
+            <div style="width: 80px;"></div>
+        </div>
+        <div class="pg-content-container">
+            <p class="pg-prompt-text">Which one did you hear?</p>
+            <button id="mp-play-btn" class="pg-audio-btn" onclick="playMinimalPairAudio()">
+                <div class="pg-pulse-ring"></div>
+                <span class="pg-audio-icon">🔊</span>
+            </button>
+            <div id="mp-options" class="mp-options">
+                <!-- Injected by JS: 2 big option buttons -->
+            </div>
+            <div id="mp-feedback" class="pg-feedback-area hidden" style="position:static; margin-top:1rem;">
+                <div class="pg-feedback-content">
+                    <span id="mp-feedback-icon" class="pg-icon"></span>
+                    <strong id="mp-feedback-text" class="pg-text"></strong>
+                </div>
+                <button class="pg-action-btn" onclick="nextMinimalPairTurn()">Next Question</button>
+            </div>
+        </div>
+    </section>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
 </body>
 </html>
+
+

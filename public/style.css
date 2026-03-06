@@ -149,11 +149,15 @@ body::after {
     z-index: 1;
     height: 100vh;
     padding: 5rem 1.5rem 1rem;
-    animation: screenIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: screenIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     overflow: hidden;
 }
 
-.screen.active { display: flex; flex-direction: column; }
+.screen.active { 
+    display: flex; 
+    flex-direction: column; 
+    opacity: 1 !important;
+}
 
 @keyframes screenIn {
     from { opacity: 0; transform: translateY(16px); }
@@ -1663,5 +1667,346 @@ body::after {
     100% { box-shadow: 0 0 0 0 rgba(229,189,78,0); }
 }
 .pulse-gold { animation: pulseGold 1.2s ease-out 2; }
+
+/* ==========================================================================
+   PLAYGROUND EXPERIENCES (Duolingo-style)
+   ========================================================================== */
+
+#playground-dashboard.active {
+    display: flex;
+    flex-direction: column;
+}
+
+#playground-game.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.pg-mode {
+    background: radial-gradient(circle at top, var(--bg-card), var(--bg-dark));
+}
+
+.pg-content-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    flex: 1;
+}
+
+.pg-prompt-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: var(--text-light);
+    text-align: center;
+}
+
+/* Big Audio Button */
+.pg-audio-btn {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: var(--bg-dark);
+    font-size: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3);
+    position: relative;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin-bottom: 3rem;
+}
+
+.pg-audio-btn:hover {
+    transform: scale(1.05);
+}
+
+.pg-audio-btn:active {
+    transform: scale(0.95);
+}
+
+.pg-audio-btn.playing {
+    background: var(--text-light);
+    color: var(--accent);
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+}
+
+.pg-pulse-ring {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    border: 3px solid var(--text-light);
+    opacity: 0;
+}
+
+.pg-audio-btn.playing .pg-pulse-ring {
+    animation: pgPulse 1.5s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+@keyframes pgPulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Options Grid */
+.pg-options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.pg-option-btn {
+    background: var(--bg-card);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 120px;
+    color: var(--text-light);
+}
+
+.pg-option-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.pg-option-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.pg-opt-char {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    font-family: 'Noto Sans SC', sans-serif;
+}
+
+.pg-opt-pinyin {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Option States */
+.pg-option-btn.correct {
+    background: rgba(46, 204, 113, 0.1);
+    border-color: #2ecc71;
+    animation: pgPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.pg-option-btn.correct .pg-opt-char,
+.pg-option-btn.correct .pg-opt-pinyin {
+    color: #2ecc71;
+}
+
+.pg-option-btn.wrong {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+    opacity: 0.7;
+    animation: pgShake 0.4s ease-in-out;
+}
+
+.pg-option-btn.wrong .pg-opt-char,
+.pg-option-btn.wrong .pg-opt-pinyin {
+    color: #e74c3c;
+}
+
+.pg-option-btn:disabled {
+    cursor: default;
+}
+
+/* Feedback Area */
+.pg-feedback-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 100;
+}
+
+.pg-feedback-area.show {
+    transform: translateY(0);
+}
+
+.pg-feedback-area.success {
+    background: #2ecc71;
+    color: #1a4f2b;
+}
+
+.pg-feedback-area.error {
+    background: #e74c3c;
+    color: #4a130f;
+}
+
+.pg-feedback-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.5rem;
+}
+
+.pg-icon {
+    font-size: 2rem;
+    background: rgba(255,255,255,0.3);
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pg-action-btn {
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    background: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+}
+.pg-feedback-area.success .pg-action-btn { color: #2ecc71; }
+.pg-feedback-area.error .pg-action-btn { color: #e74c3c; }
+
+.pg-action-btn:active {
+    transform: scale(0.95);
+}
+
+@keyframes pgPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes pgShake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+
+/* Register new game screens */
+#match-game.active, #tone-game.active, #minimal-pairs-game.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Match Game ───────────────────────────────────────────────── */
+.match-game-board {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.match-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.match-btn {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    color: var(--text);
+    font-family: var(--font-cn);
+    font-size: 1.4rem;
+    padding: 1rem 0.5rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+.match-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--gold); }
+.match-btn.selected { border-color: var(--gold); background: var(--gold-dim); box-shadow: 0 0 12px var(--gold-glow); }
+.match-btn.matched  { border-color: #2ecc71; background: rgba(46,204,113,0.15); opacity: 0.6; pointer-events: none; animation: pgPop 0.4s; }
+.match-btn.wrong    { border-color: #e74c3c; background: rgba(231,76,60,0.15); animation: pgShake 0.4s; }
+.match-pinyin { font-size: 1rem; color: var(--gold); font-family: var(--font); }
+
+/* ── Tone Game ───────────────────────────────────────────────── */
+.tone-btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+    margin-top: 1.5rem;
+}
+
+.tone-choice-btn {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    color: var(--text);
+    padding: 1.2rem 0.5rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s;
+}
+.tone-choice-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--gold); }
+.tone-choice-btn.correct { border-color: #2ecc71; background: rgba(46,204,113,0.2); animation: pgPop 0.3s; }
+.tone-choice-btn.wrong   { border-color: #e74c3c; background: rgba(231,76,60,0.2); animation: pgShake 0.4s; }
+.tone-choice-btn:disabled { pointer-events: none; opacity: 0.6; }
+.tone-num  { font-size: 0.85rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.tone-mark { font-size: 2rem; font-family: var(--font-cn); color: var(--text); }
+
+/* ── Minimal Pairs ───────────────────────────────────────────── */
+.mp-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 440px;
+    margin-top: 1.5rem;
+}
+
+.mp-choice-btn {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    color: var(--text);
+    font-family: var(--font-cn);
+    padding: 1.5rem 0.5rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s;
+}
+.mp-choice-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--gold); }
+.mp-choice-btn.correct { border-color: #2ecc71; background: rgba(46,204,113,0.2); animation: pgPop 0.3s; }
+.mp-choice-btn.wrong   { border-color: #e74c3c; background: rgba(231,76,60,0.2); animation: pgShake 0.4s; }
+.mp-choice-btn:disabled { pointer-events: none; opacity: 0.6; }
+.mp-char   { font-size: 3rem; }
+.mp-pinyin { font-size: 1rem; color: var(--gold); font-family: var(--font); }
+
 
 

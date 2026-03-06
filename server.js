@@ -389,6 +389,50 @@ app.get('/api/mock-exam/:id', (req, res) => {
 });
 
 
+app.get('/api/playground-game', (req, res) => {
+    const { section } = req.query; // 'dan_yin_jie' or 'duo_yin_jie'
+    
+    // Attempt to gather items from static database first
+    let pool = [];
+    const sectionIdx = section === 'dan_yin_jie' ? '1' : '2';
+
+    // Iterate through all grades for the given section in static DB
+    ['1', '2', '3'].forEach(grade => {
+        const key = poolKey(section, grade);
+        if (staticQuestions[key] && staticQuestions[key].length > 0) {
+            pool = pool.concat(staticQuestions[key]);
+        }
+    });
+
+    // Fallback to sentencePool if static DB is empty for this section
+    if (pool.length < 4) {
+        ['1', '2', '3'].forEach(grade => {
+            const key = poolKey(section, grade);
+            if (sentencePool[key] && sentencePool[key].length > 0) {
+                pool = pool.concat(sentencePool[key]);
+            }
+        });
+    }
+
+    if (pool.length < 4) {
+        return res.status(500).json({ error: 'Not enough questions in the database' });
+    }
+
+    // Pick 4 unique random items
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 4);
+
+    // Designate the first one as correct
+    const correctItem = selected[0];
+    
+    // Shuffle the options to randomize the button order
+    const options = [...selected].sort(() => 0.5 - Math.random());
+
+    res.json({
+        correctItem,
+        options
+    });
+});
 
 app.post('/api/tts', async (req, res) => {
     const { text, rate = 0.85, voice = 'cmn-CN-Chirp3-HD-Aoede' } = req.body;

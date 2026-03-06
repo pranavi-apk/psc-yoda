@@ -38,7 +38,12 @@ const screens = {
     mockExamDashboard: document.getElementById('mock-exam-dashboard'),
     mockExamInstructions: document.getElementById('mock-exam-instructions'),
     mockExamSession:   document.getElementById('mock-exam-session'),
-    section3Parts:      document.getElementById('section3-parts')
+    section3Parts:      document.getElementById('section3-parts'),
+    'playground-dashboard': document.getElementById('playground-dashboard'),
+    'playground-game':  document.getElementById('playground-game'),
+    'match-game':       document.getElementById('match-game'),
+    'tone-game':        document.getElementById('tone-game'),
+    'minimal-pairs-game': document.getElementById('minimal-pairs-game')
 };
 
 
@@ -1157,4 +1162,444 @@ window.revealAnswer = () => {
     // Update target text so speech evaluation scores the CORRECT answer
     STATE.currentText  = STATE.correctAnswer;
     STATE.currentChars = STATE.correctAnswer.split('').map(c => ({ c, p: '' }));
+};
+
+/* ==========================================================================
+   PLAYGROUND EXPERIENCES (Duolingo-style)
+   ========================================================================== */
+
+window.goToPlaygroundDashboard = () => {
+    stopRecording();
+    STATE.activeSection = null;
+    deactivateStorybook();
+    switchScreen('playground-dashboard');
+};
+
+window.startPlaygroundGame = async (section) => {
+    STATE.activeSection = section; // 'dan_yin_jie' or 'duo_yin_jie'
+    switchScreen('playground-game');
+    
+    // Reset UI
+    document.getElementById('pg-feedback-area').classList.remove('show');
+    document.getElementById('pg-options-grid').innerHTML = '<p style="text-align: center; color: white; grid-column: span 2;">Loading...</p>';
+    document.getElementById('pg-play-audio-btn').classList.remove('playing');
+    
+    // Set title based on section
+    const titleText = section === 'dan_yin_jie' ? 'Guess Single Syllable' : 'Guess Multi Syllables';
+    document.getElementById('pg-game-title').innerText = titleText;
+
+    await generatePlaygroundContent(section);
+};
+
+window.generatePlaygroundContent = async (section) => {
+    try {
+        const res = await fetch(`/api/playground-game?section=${section}`);
+        
+        if (!res.ok) {
+            throw new Error('Could not fetch playground data');
+        }
+        
+        const data = await res.json();
+        
+        // Save state
+        STATE.playgroundCorrectOption = data.correctItem;
+        STATE.playgroundOptions = data.options;
+        STATE.playgroundHasAnswered = false;
+        
+        // Render options
+        renderPlaygroundOptions();
+        
+        // Auto-play the audio
+        setTimeout(() => {
+            playPlaygroundAudio();
+        }, 500);
+        
+    } catch (e) {
+        console.error('Playground generation failed:', e);
+        document.getElementById('pg-options-grid').innerHTML = '<p style="text-align: center; color: white; grid-column: span 2;">Failed to load data. Please try again.</p>';
+    }
+};
+
+function renderPlaygroundOptions() {
+    const grid = document.getElementById('pg-options-grid');
+    grid.innerHTML = '';
+    
+    STATE.playgroundOptions.forEach((opt, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'pg-option-btn';
+        btn.onclick = () => handlePlaygroundGuess(index, btn);
+        
+        // Clean chars text & pinyin
+        let charText = '';
+        let pinyinText = '';
+        
+        if (opt.chars && Array.isArray(opt.chars)) {
+            charText = opt.chars.map(c => c.c).join('');
+            pinyinText = opt.chars.map(c => c.p).join(' ');
+        } else {
+            charText = opt.text;
+        }
+        
+        btn.innerHTML = `
+            <span class="pg-opt-char">${charText}</span>
+        `;
+        
+        grid.appendChild(btn);
+    });
+}
+
+window.playPlaygroundAudio = () => {
+    if (!STATE.playgroundCorrectOption) return;
+    
+    const btn = document.getElementById('pg-play-audio-btn');
+    btn.classList.add('playing');
+    
+    // Play audio via existing TTS system
+    // Using default female voice for clear training
+    playPronunciation(STATE.playgroundCorrectOption.text, 0.75, 'cmn-CN-Chirp3-HD-Aoede');
+    
+    // Stop animation after roughly length of audio
+    setTimeout(() => {
+        btn.classList.remove('playing');
+    }, 1500);
+};
+
+window.handlePlaygroundGuess = (index, btnEl) => {
+    if (STATE.playgroundHasAnswered) return;
+    STATE.playgroundHasAnswered = true;
+    
+    const selectedOption = STATE.playgroundOptions[index];
+    const isCorrect = selectedOption.text === STATE.playgroundCorrectOption.text;
+    
+    // Log attempt for the Report Card
+    STATE.sessionHistory.push({
+        section: STATE.activeSection,
+        type: 'playground_audio_guess',
+        text: STATE.playgroundCorrectOption.text,
+        isCorrect: isCorrect,
+        selectedOption: selectedOption.text
+    });
+    
+    const feedbackArea = document.getElementById('pg-feedback-area');
+    const feedbackIcon = document.getElementById('pg-feedback-icon');
+    const feedbackText = document.getElementById('pg-feedback-text');
+    
+    // Disable all buttons
+    const allBtns = document.querySelectorAll('.pg-option-btn');
+    allBtns.forEach(b => b.disabled = true);
+    
+    if (isCorrect) {
+        btnEl.classList.add('correct');
+        feedbackArea.className = 'pg-feedback-area show success';
+        feedbackIcon.innerText = '✅';
+        feedbackText.innerText = 'Correct! Great ear.';
+    } else {
+        btnEl.classList.add('wrong');
+        feedbackArea.className = 'pg-feedback-area show error';
+        feedbackIcon.innerText = '❌';
+        feedbackText.innerText = 'Incorrect! Review the sounds.';
+        
+        // Highlight correct option
+        const correctIndex = STATE.playgroundOptions.findIndex(o => o.text === STATE.playgroundCorrectOption.text);
+        if (correctIndex !== -1 && allBtns[correctIndex]) {
+            allBtns[correctIndex].classList.add('correct');
+        }
+    }
+};
+
+window.nextPlaygroundTurn = () => {
+    document.getElementById('pg-feedback-area').classList.remove('show');
+    generatePlaygroundContent(STATE.activeSection);
+};
+
+/* ==========================================================================
+   MATCH GAME — Retroflex Match-Up
+   Left col: shuffled pinyin.  Right col: shuffled characters.
+   Tap left, then tap right to pair them.
+   ========================================================================== */
+
+// Static retroflex pair bank (zh/ch/sh vs z/c/s pairs + others)
+const MATCH_PAIRS = [
+    { pinyin: 'zhī', char: '知' }, { pinyin: 'zhū', char: '猪' },
+    { pinyin: 'zhǎng', char: '长' }, { pinyin: 'zhèng', char: '正' },
+    { pinyin: 'chī', char: '吃' }, { pinyin: 'chū', char: '出' },
+    { pinyin: 'chéng', char: '城' }, { pinyin: 'chūn', char: '春' },
+    { pinyin: 'shū', char: '书' }, { pinyin: 'shān', char: '山' },
+    { pinyin: 'shēng', char: '生' }, { pinyin: 'shí', char: '时' },
+    { pinyin: 'zī', char: '资' }, { pinyin: 'zú', char: '足' },
+    { pinyin: 'zǔ', char: '祖' }, { pinyin: 'zǎo', char: '早' },
+    { pinyin: 'cū', char: '粗' }, { pinyin: 'cōng', char: '聪' },
+    { pinyin: 'sī', char: '思' }, { pinyin: 'sān', char: '三' },
+    { pinyin: 'rén', char: '人' }, { pinyin: 'rì', char: '日' },
+];
+
+const matchState = { selected: null, matched: 0, total: 0, pairs: [] };
+
+window.startMatchGame = () => {
+    switchScreen('match-game');
+    document.getElementById('match-feedback').classList.add('hidden');
+    matchState.selected = null;
+    matchState.matched = 0;
+
+    // Pick 4 random pairs
+    const shuffled = [...MATCH_PAIRS].sort(() => 0.5 - Math.random()).slice(0, 4);
+    matchState.pairs = shuffled;
+    matchState.total = shuffled.length;
+
+    const leftPinyin = [...shuffled].sort(() => 0.5 - Math.random());
+    const rightChars  = [...shuffled].sort(() => 0.5 - Math.random());
+
+    const leftCol  = document.getElementById('match-left-col');
+    const rightCol = document.getElementById('match-right-col');
+    leftCol.innerHTML = '';
+    rightCol.innerHTML = '';
+
+    leftPinyin.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'match-btn';
+        btn.dataset.pinyin = p.pinyin;
+        btn.dataset.char   = p.char;
+        btn.dataset.side   = 'left';
+        btn.innerHTML = `<span class="match-pinyin">${p.pinyin}</span>`;
+        btn.onclick = () => handleMatchSelect(btn);
+        leftCol.appendChild(btn);
+    });
+
+    rightChars.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'match-btn';
+        btn.dataset.pinyin = p.pinyin;
+        btn.dataset.char   = p.char;
+        btn.dataset.side   = 'right';
+        btn.textContent = p.char;
+        btn.onclick = () => handleMatchSelect(btn);
+        rightCol.appendChild(btn);
+    });
+
+    updateMatchScore();
+};
+
+function updateMatchScore() {
+    document.getElementById('match-score-display').textContent = `${matchState.matched} / ${matchState.total} matched`;
+}
+
+function handleMatchSelect(btn) {
+    if (btn.classList.contains('matched')) return;
+
+    // Play audio when clicking the left (pinyin) side
+    if (btn.dataset.side === 'left') {
+        playPronunciation(btn.dataset.char, 0.75, 'cmn-CN-Chirp3-HD-Aoede');
+    }
+
+    if (!matchState.selected) {
+        // First selection — just mark as selected regardless of side
+        matchState.selected = btn;
+        btn.classList.add('selected');
+        return;
+    }
+
+    const prev = matchState.selected;
+
+    // Deselect if same button tapped again
+    if (prev === btn) {
+        prev.classList.remove('selected');
+        matchState.selected = null;
+        return;
+    }
+
+    // Must be from opposite sides
+    if (prev.dataset.side === btn.dataset.side) {
+        prev.classList.remove('selected');
+        matchState.selected = btn;
+        btn.classList.add('selected');
+        return;
+    }
+
+    // Check if pinyin matches char
+    const isMatch = prev.dataset.pinyin === btn.dataset.pinyin && prev.dataset.char === btn.dataset.char;
+
+    if (isMatch) {
+        prev.classList.remove('selected');
+        prev.classList.add('matched');
+        btn.classList.add('matched');
+        matchState.matched++;
+        updateMatchScore();
+
+        // Log to session history
+        STATE.sessionHistory.push({ section: 'dan_yin_jie', type: 'match_game', text: btn.dataset.char, isCorrect: true });
+
+        if (matchState.matched === matchState.total) {
+            setTimeout(() => {
+                const fb = document.getElementById('match-feedback');
+                fb.classList.remove('hidden');
+                document.getElementById('match-feedback-icon').textContent = '🏆';
+                document.getElementById('match-feedback-text').textContent = 'All matched! Great work!';
+            }, 400);
+        }
+    } else {
+        prev.classList.remove('selected');
+        prev.classList.add('wrong');
+        btn.classList.add('wrong');
+        STATE.sessionHistory.push({ section: 'dan_yin_jie', type: 'match_game', text: btn.dataset.char, isCorrect: false });
+        setTimeout(() => {
+            prev.classList.remove('wrong');
+            btn.classList.remove('wrong');
+        }, 600);
+    }
+
+    matchState.selected = null;
+}
+
+/* ==========================================================================
+   TONE GAME — Tone Identification Challenge
+   ========================================================================== */
+
+// Bank of common words with their tone numbers
+const TONE_BANK = [
+    { text: '妈', tone: 1 }, { text: '麻', tone: 2 }, { text: '马', tone: 3 }, { text: '骂', tone: 4 },
+    { text: '书', tone: 1 }, { text: '熟', tone: 2 }, { text: '鼠', tone: 3 }, { text: '树', tone: 4 },
+    { text: '飞', tone: 1 }, { text: '肥', tone: 2 }, { text: '匪', tone: 3 }, { text: '废', tone: 4 },
+    { text: '天', tone: 1 }, { text: '田', tone: 2 }, { text: '舔', tone: 3 }, { text: '店', tone: 4 },
+    { text: '汤', tone: 1 }, { text: '唐', tone: 2 }, { text: '躺', tone: 3 }, { text: '烫', tone: 4 },
+    { text: '花', tone: 1 }, { text: '华', tone: 2 }, { text: '化', tone: 4 },
+    { text: '猫', tone: 1 }, { text: '没', tone: 2 }, { text: '买', tone: 3 }, { text: '卖', tone: 4 },
+    { text: '吗', tone: 0 }, { text: '了', tone: 0 }, { text: '呢', tone: 0 }, { text: '嘛', tone: 0 },
+];
+
+const toneState = { current: null, answered: false };
+
+window.startToneGame = () => {
+    switchScreen('tone-game');
+    nextToneTurn();
+};
+
+window.nextToneTurn = () => {
+    document.getElementById('tone-feedback').classList.add('hidden');
+    document.getElementById('tone-play-btn').classList.remove('playing');
+    toneState.answered = false;
+    // Reset button states
+    document.querySelectorAll('.tone-choice-btn').forEach(b => {
+        b.classList.remove('correct', 'wrong');
+        b.disabled = false;
+    });
+    // Pick random word
+    const pick = TONE_BANK[Math.floor(Math.random() * TONE_BANK.length)];
+    toneState.current = pick;
+    setTimeout(() => playToneAudio(), 400);
+};
+
+window.playToneAudio = () => {
+    if (!toneState.current) return;
+    const btn = document.getElementById('tone-play-btn');
+    btn.classList.add('playing');
+    playPronunciation(toneState.current.text, 0.75, 'cmn-CN-Chirp3-HD-Aoede');
+    setTimeout(() => btn.classList.remove('playing'), 1500);
+};
+
+window.handleToneGuess = (tone) => {
+    if (toneState.answered) return;
+    toneState.answered = true;
+
+    const correct = toneState.current.tone === 0 ? 5 : toneState.current.tone;
+    const isCorrect = tone === correct;
+
+    document.querySelectorAll('.tone-choice-btn').forEach(b => b.disabled = true);
+
+    const btns = document.querySelectorAll('.tone-choice-btn');
+    // btn index 0→1, 1→2, 2→3, 3→4, 4→neutral(5)
+    [1,2,3,4,5].forEach((t, i) => {
+        if (t === tone) btns[i].classList.add(isCorrect ? 'correct' : 'wrong');
+        if (!isCorrect && t === correct) btns[i].classList.add('correct');
+    });
+
+    const fb = document.getElementById('tone-feedback');
+    fb.classList.remove('hidden');
+    document.getElementById('tone-feedback-icon').textContent = isCorrect ? '✅' : '❌';
+
+    const TONE_NAMES = { 1:'1st (ā)', 2:'2nd (á)', 3:'3rd (ǎ)', 4:'4th (à)', 5:'Neutral' };
+    document.getElementById('tone-feedback-text').textContent = isCorrect
+        ? `Correct! "${toneState.current.text}" is ${TONE_NAMES[correct]} tone.`
+        : `That's ${TONE_NAMES[correct]} tone. Keep training!`;
+
+    STATE.sessionHistory.push({ section: 'dan_yin_jie', type: 'tone_game', text: toneState.current.text, isCorrect });
+};
+
+/* ==========================================================================
+   MINIMAL PAIRS GAME — Two similar sounds, pick which was heard
+   ========================================================================== */
+
+const MINIMAL_PAIRS_BANK = [
+    [{ char: '知', pinyin: 'zhī' }, { char: '资', pinyin: 'zī' }],
+    [{ char: '吃', pinyin: 'chī' }, { char: '词', pinyin: 'cí' }],
+    [{ char: '书', pinyin: 'shū' }, { char: '苏', pinyin: 'sū' }],
+    [{ char: '日', pinyin: 'rì' },  { char: '力', pinyin: 'lì' }],
+    [{ char: '正', pinyin: 'zhèng' }, { char: '争', pinyin: 'zhēng' }],
+    [{ char: '年', pinyin: 'nián' }, { char: '连', pinyin: 'lián' }],
+    [{ char: '恩', pinyin: 'ēn' },  { char: '英', pinyin: 'yīng' }],
+    [{ char: '这', pinyin: 'zhè' }, { char: '则', pinyin: 'zé' }],
+    [{ char: '人', pinyin: 'rén' }, { char: '嫩', pinyin: 'nèn' }],
+    [{ char: '春', pinyin: 'chūn' }, { char: '村', pinyin: 'cūn' }],
+    [{ char: '声', pinyin: 'shēng' }, { char: '僧', pinyin: 'sēng' }],
+];
+
+const mpState = { pair: null, correctIdx: null, answered: false };
+
+window.startMinimalPairsGame = () => {
+    switchScreen('minimal-pairs-game');
+    nextMinimalPairTurn();
+};
+
+window.nextMinimalPairTurn = () => {
+    mpState.answered = false;
+    document.getElementById('mp-feedback').classList.add('hidden');
+    document.getElementById('mp-play-btn').classList.remove('playing');
+
+    const pair = MINIMAL_PAIRS_BANK[Math.floor(Math.random() * MINIMAL_PAIRS_BANK.length)];
+    const correctIdx = Math.round(Math.random()); // 0 or 1
+    mpState.pair = pair;
+    mpState.correctIdx = correctIdx;
+
+    const container = document.getElementById('mp-options');
+    container.innerHTML = '';
+    pair.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'mp-choice-btn';
+        btn.innerHTML = `<span class="mp-char">${opt.char}</span><span class="mp-pinyin">${opt.pinyin}</span>`;
+        btn.onclick = () => handleMinimalPairGuess(i, btn);
+        container.appendChild(btn);
+    });
+
+    setTimeout(() => playMinimalPairAudio(), 400);
+};
+
+window.playMinimalPairAudio = () => {
+    if (mpState.pair === null) return;
+    const btn = document.getElementById('mp-play-btn');
+    btn.classList.add('playing');
+    playPronunciation(mpState.pair[mpState.correctIdx].char, 0.75, 'cmn-CN-Chirp3-HD-Aoede');
+    setTimeout(() => btn.classList.remove('playing'), 1500);
+};
+
+window.handleMinimalPairGuess = (idx, btnEl) => {
+    if (mpState.answered) return;
+    mpState.answered = true;
+
+    const isCorrect = idx === mpState.correctIdx;
+    const allBtns = document.querySelectorAll('.mp-choice-btn');
+    allBtns.forEach(b => b.disabled = true);
+
+    btnEl.classList.add(isCorrect ? 'correct' : 'wrong');
+    if (!isCorrect) allBtns[mpState.correctIdx].classList.add('correct');
+
+    const fb = document.getElementById('mp-feedback');
+    fb.classList.remove('hidden');
+    document.getElementById('mp-feedback-icon').textContent = isCorrect ? '✅' : '❌';
+    document.getElementById('mp-feedback-text').textContent = isCorrect
+        ? 'Correct! Your ears are sharp!'
+        : `It was "${mpState.pair[mpState.correctIdx].char}" (${mpState.pair[mpState.correctIdx].pinyin})`;
+
+    STATE.sessionHistory.push({
+        section: 'dan_yin_jie', type: 'minimal_pairs',
+        text: mpState.pair[mpState.correctIdx].char, isCorrect
+    });
 };
