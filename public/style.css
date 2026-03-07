@@ -556,6 +556,11 @@ body::after {
 .dash-card[data-section="pg3"]::before { background: linear-gradient(90deg, transparent, #fc8181, transparent); opacity: 1; }
 .dash-card[data-section="pg3"] .card-icon { background: rgba(252,129,129,0.12); border-color: rgba(252,129,129,0.3); text-shadow: none; }
 
+/* Mock Exam Cards */
+.dash-card[data-section="mock"] { --card-glow: rgba(56, 211, 203, 0.5); }
+.dash-card[data-section="mock"]::before { background: linear-gradient(90deg, transparent, #38d9c8, transparent); opacity: 1; }
+.dash-card[data-section="mock"] .card-icon { background: rgba(56,211,203,0.12); border-color: rgba(56,211,203,0.3); text-shadow: none; }
+
 .bento-card h3 {
     font-size: 1.05rem;
     font-weight: 700;

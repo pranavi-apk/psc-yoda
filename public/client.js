@@ -1185,10 +1185,14 @@ window.goToMockExamDashboard = async () => {
 
         examIds.forEach(id => {
             const card = document.createElement('div');
-            card.className = 'bento-card special';
+            card.className = 'bento-card dash-card special';
+            card.setAttribute('data-section', 'mock');
             card.onclick = () => startMockExam(id);
             card.innerHTML = `
-                <div class="card-icon">📄</div>
+                <div class="dash-card-top">
+                    <div class="card-icon">📝</div>
+                    <span class="section-num">${id.padStart(2,'0')}</span>
+                </div>
                 <h3>PSC Mock Exam ${id.padStart(2, '0')}</h3>
                 <p>Official 5-section timed simulation.</p>
                 <div class="psc-badge">Official</div>
