@@ -20,15 +20,18 @@
             </a>
         </div>
         <div class="nav-menu" id="main-nav">
+            <a href="javascript:void(0)" onclick="goToAboutPSC()" id="nav-about">About</a>
+            <div class="nav-divider"></div>
             <a href="javascript:void(0)" onclick="goToDashboard()" id="nav-home">Sections</a>
+            <div class="nav-divider"></div>
+            <a href="javascript:void(0)" onclick="goToPlaygroundDashboard()" id="nav-playground">Playground</a>
             <div class="nav-divider"></div>
             <a href="javascript:void(0)" onclick="goToMockExamDashboard()" id="nav-mock">Mock Exam</a>
             <div class="nav-divider"></div>
             <a href="javascript:void(0)" onclick="goToMasteryDashboard()" id="nav-mastery">Dashboard</a>
             <div class="nav-divider"></div>
-            <a href="javascript:void(0)" onclick="goToPlaygroundDashboard()" id="nav-playground">Playground</a>
-            <div class="nav-divider"></div>
-            <a href="javascript:void(0)" onclick="goToAboutPSC()" id="nav-about">About</a>
+            
+            
         </div>
     </nav>
 
@@ -509,14 +512,6 @@
                     <div id="mastery-heatmap" class="mastery-heatmap"></div>
                     <button class="action-btn complete-btn" onclick="completeSession()" style="margin-top:0.5rem; align-self:center; width: 100%;">View AI Report Card</button>
                 </div>
-            </div>
-
-            <!-- Smart Practice CTA -->
-            <div class="mastery-card mastery-smart-card">
-                <h4>Smart Practice</h4>
-                <p>Generate a custom sentence targeting your weakest characters.</p>
-                <button id="smart-practice-btn" class="cta-btn" onclick="startSmartPractice()" style="max-width:400px">Practice Your Weakest Patterns</button>
-                <div id="smart-practice-result" class="smart-practice-result hidden"></div>
             </div>
         </div>
     </section>
