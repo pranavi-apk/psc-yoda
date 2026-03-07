@@ -241,6 +241,24 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
     const modal = document.getElementById('mock-result-modal');
     const content = document.getElementById('modal-body-content');
     
+    const closeCall = isFromExam ? 'closeModal(); goToMockExamDashboard();' : 'closeModal();';
+
+    if (data.genAiReport) {
+        // Render the premium GenAI report content
+        content.innerHTML = `
+            <div style="margin-bottom:20px; text-align:center;">
+                <h2 style="font-size:1.6rem; color:#1a1a1a; margin-bottom:5px;">PSC Mock Exam Report Card</h2>
+                <div style="font-size:3.5rem; font-weight:900; color:var(--primary-color); line-height:1;">${Math.round(data.bestScore)}<span style="font-size:1.2rem; opacity:0.4; font-weight:400;"> / 100</span></div>
+            </div>
+            <div class="rich-report-container" style="color:#333; font-size:0.95rem;">
+                ${data.genAiReport}
+            </div>
+            <button class="card-btn" onclick="${closeCall}" style="margin-top:25px; width:100%; background:#1a1a1a; color:white; border:none; padding:18px; border-radius:15px; font-weight:700; font-size:1.1rem; cursor:pointer;">Continue</button>
+        `;
+        return;
+    }
+
+    // Fallback basic view if GenAI report isn't available
     let rowsHtml = '';
     const sectionNames = ["Section 1: Single Characters", "Section 2: Multi-syllable Words", "Section 3: Selective Judgment", "Section 4: Reading Passage", "Section 5: Free Talk"];
     
@@ -260,8 +278,6 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
             </div>
         `;
     });
-
-    const closeCall = isFromExam ? 'closeModal(); goToMockExamDashboard();' : 'closeModal();';
 
     content.innerHTML = `
         <div style="text-align:center; margin-bottom:20px;">
@@ -866,17 +882,22 @@ function renderResult(xmlStr) {
         // Capture mock exam result if active
         if (STATE.activeSection === 'mock' && STATE.mockExam.data) {
             const currentPart = STATE.mockExam.currentPartIndex;
-            const maxScore = STATE.mockExam.data.sections[currentPart].score || 100;
+            const section = STATE.mockExam.data.sections[currentPart];
+            const maxScore = section.score || 100;
             const absoluteScore = (pct / 100) * maxScore;
             
             STATE.mockExam.sectionResults[currentPart] = {
-                sectionId: STATE.mockExam.data.sections[currentPart].id,
+                sectionId: section.id,
+                title: section.title,
+                text: STATE.currentText,
                 totalScore: absoluteScore,
                 percent: pct,
                 tone: tone,
                 fluency: fluency,
                 integrity: integrity,
-                phone: phone
+                phone: phone,
+                errors: detailedErrors,
+                errorStats: statsForHistory
             };
         }
 
@@ -1236,17 +1257,25 @@ function renderFreeTalkResult(data) {
     // Capture mock exam result if active
     if (STATE.activeSection === 'mock' && STATE.mockExam.data) {
         const currentPart = STATE.mockExam.currentPartIndex;
-        const maxScore = STATE.mockExam.data.sections[currentPart].score || 100;
+        const section = STATE.mockExam.data.sections[currentPart];
+        const maxScore = section.score || 100;
         const absoluteScore = (data.totalScore / 100) * maxScore;
         
         STATE.mockExam.sectionResults[currentPart] = {
-            sectionId: STATE.mockExam.data.sections[currentPart].id,
+            sectionId: section.id,
+            title: section.title,
+            text: STATE.currentText || "Free Talk Content",
             totalScore: absoluteScore,
             percent: data.totalScore,
             vocabulary: data.vocabularyScore,
             grammar: data.grammarScore,
             relevance: data.relevanceScore,
-            fluency: data.fluencyScore
+            fluency: data.fluencyScore,
+            tone: data.vocabularyScore, // Map Free Talk metrics to report keys
+            phone: data.grammarScore,
+            integrity: data.relevanceScore,
+            errors: [], // AI diagnostic is usually in feedback, not precise char errors for free talk
+            errorStats: { skipped: 0, tone: 0, sound: 0, extra: 0 } 
         };
     }
     
@@ -1528,13 +1557,48 @@ window.nextExamPart = () => {
         
         // Final score calculation
         const total = STATE.mockExam.sectionResults.reduce((sum, res) => sum + (res ? res.totalScore : 0), 0);
-        saveMockScore(STATE.mockExam.id, {
-            totalScore: total,
-            sectionResults: [...STATE.mockExam.sectionResults]
-        });
+        
+        // Start generating the rich report immediately
+        document.getElementById('mock-result-modal').classList.add('show');
+        document.getElementById('modal-body-content').innerHTML = `
+            <div style="text-align:center; padding:40px;">
+                <div class="loading-spinner" style="margin: 0 auto 20px;"></div>
+                <h3>Calculating Official Score...</h3>
+                <p style="opacity:0.6;">Analyzing your pronunciation patterns & generating feedback.</p>
+            </div>
+        `;
 
-        // Show detailed score modal immediately instead of an alert
-        showMockScoreDetails(STATE.mockExam.id, true);
+        fetch('/api/generate-report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                history: STATE.mockExam.sectionResults.map(r => ({
+                    section: r.title || r.sectionId,
+                    text: r.text,
+                    totalScore: r.totalScore,
+                    tone: r.tone,
+                    fluency: r.fluency,
+                    errors: r.errors,
+                    errorStats: r.errorStats
+                })),
+                lang: STATE.lang 
+            })
+        }).then(res => res.json()).then(data => {
+            saveMockScore(STATE.mockExam.id, {
+                totalScore: total,
+                sectionResults: [...STATE.mockExam.sectionResults],
+                genAiReport: data.report
+            });
+            // Show the modal with the rich data
+            showMockScoreDetails(STATE.mockExam.id, true);
+        }).catch(err => {
+            console.error('Report generation failed:', err);
+            saveMockScore(STATE.mockExam.id, {
+                totalScore: total,
+                sectionResults: [...STATE.mockExam.sectionResults]
+            });
+            showMockScoreDetails(STATE.mockExam.id, true);
+        });
     }
 };
 
