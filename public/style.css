@@ -2930,6 +2930,45 @@ body::after {
 .lvl-fail { background: #8e0000; color: #fff; }
 
 /* ─── About PSC / Documentation ─────────────────────────── */
+.hero-link-container {
+    position: relative;
+    display: inline-block;
+}
+
+.hero-bubble {
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: #000;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+    pointer-events: none;
+    animation: floatTooltip 3s ease-in-out infinite;
+    z-index: 10;
+}
+
+.hero-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--gold);
+}
+
+@keyframes floatTooltip {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -5px); }
+}
+
 .underlined-psc {
     color: var(--gold);
     text-decoration: none;
@@ -2959,11 +2998,11 @@ body::after {
 }
 
 .doc-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.08); /* Increased opacity slightly */
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
     padding: 2rem;
-    backdrop-filter: blur(10px);
+    /* backdrop-filter: blur(10px) REMOVED as requested */
 }
 
 .doc-card h3 {
@@ -3067,7 +3106,7 @@ body::after {
 }
 
 .detailed-part {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.08); /* Increased for contrast without blur */
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 1.8rem;
