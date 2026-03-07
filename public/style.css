@@ -408,6 +408,12 @@ body::after {
     max-width: 1200px;
 }
 
+#dashboard-grid {
+    /* 6 cards -> 3 per row = perfect 2 x 3 symmetrical grid */
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1000px;
+}
+
 .bento-card {
     background: var(--card);
     border: 1px solid var(--card-border);
