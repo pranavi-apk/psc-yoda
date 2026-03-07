@@ -794,5 +794,5 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => { if (ws) ws.close(); console.log('Client disconnected'); });
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

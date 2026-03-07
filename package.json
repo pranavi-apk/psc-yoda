@@ -1,8 +1,11 @@
 {
-  "name": "iat-ws",
+  "name": "yoda-psc",
   "version": "1.0.0",
-  "description": "",
-  "main": "iat-ws-node.js",
+  "description": "Yoda PSC - Putonghua Proficiency Test AI Trainer",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "crypto-js": "^3.1.9-1",
     "express": "^5.2.1",
@@ -11,8 +14,9 @@
     "ws": "^7.1.2"
   },
   "scripts": {
-    "start": "node ise-ws-node-EN.js"
+    "start": "node server.js"
   },
-  "author": "iflytek",
+  "author": "Pranavi",
   "license": "ISC"
 }
+

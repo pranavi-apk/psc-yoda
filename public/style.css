@@ -401,9 +401,9 @@ body::after {
 }
 
 #mock-exam-list {
-    /* 10 mock exams -> make it a perfectly symmetrical 2-column grid instead of 3 */
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 800px;
+    /* 10 mock exams -> 5 per row = perfect 2 x 5 grid */
+    grid-template-columns: repeat(5, 1fr);
+    max-width: 1200px;
 }
 
 .bento-card {
