@@ -2933,7 +2933,7 @@ body::after {
 .underlined-psc {
     color: var(--gold);
     text-decoration: none;
-    border-bottom: 2px dashed rgba(212, 175, 55, 0.4);
+    border-bottom: 2px solid var(--gold);
     transition: all 0.2s;
     cursor: pointer;
 }
