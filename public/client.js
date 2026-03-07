@@ -1194,8 +1194,8 @@ window.goToMockExamDashboard = async () => {
                     <span class="section-num">${id.padStart(2,'0')}</span>
                 </div>
                 <h3>PSC Mock Exam ${id.padStart(2, '0')}</h3>
-                <p>Official 5-section timed simulation.</p>
-                <div class="psc-badge">Official</div>
+                <p>5-section timed simulation based on the PSC format.</p>
+                <div class="psc-badge">PSC-Based</div>
             `;
             listEl.appendChild(card);
         });
@@ -1215,7 +1215,7 @@ window.startMockExam = async (examId) => {
 
         // Populate instruction screen
         document.getElementById('ins-exam-title').innerText = examData.title;
-        document.getElementById('ins-exam-desc').innerText = examData.description || "Official Putonghua Proficiency Test simulation.";
+        document.getElementById('ins-exam-desc').innerText = examData.description || "5-section timed practice test based on the PSC format.";
         document.getElementById('ins-exam-time').innerText = Math.floor((examData.totalTime || 900) / 60) + " mins";
         document.getElementById('ins-exam-score').innerText = (examData.totalScore || 100) + " pts";
         
