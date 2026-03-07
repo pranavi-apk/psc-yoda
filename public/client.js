@@ -1577,6 +1577,7 @@ window.nextExamPart = () => {
     if (isRecording) stopRecording();
     
     // Ensure current section has at least a fallback score if recorded but not graded
+    // Ensure current section has at least a fallback score if recorded but not graded
     const currentPart = STATE.mockExam.currentPartIndex;
     if (!STATE.mockExam.sectionResults[currentPart]) {
         const section = STATE.mockExam.data.sections[currentPart];
@@ -1587,12 +1588,12 @@ window.nextExamPart = () => {
             section.subParts.forEach((sp, spIdx) => {
                 const items = sp.items || sp.examples || [];
                 items.forEach((it, itemIdx) => {
-                    const selected = STATE.mockExam.userChoices[spIdx]?.[itemIdx];
-                    if (selected === 0) correctCount++; // Assume first option is always the correct PSC standard
+                    const selected = STATE.mockExam.userChoices?.[spIdx]?.[itemIdx];
+                    if (selected === 0) correctCount++;
                     totalItems++;
                 });
             });
-            const pct = (correctCount / totalItems) * 100;
+            const pct = totalItems > 0 ? (correctCount / totalItems) * 100 : 0;
             STATE.mockExam.sectionResults[currentPart] = {
                 sectionId: section.id,
                 title: section.title,
@@ -1601,6 +1602,17 @@ window.nextExamPart = () => {
                 percent: pct,
                 tone: pct, fluency: 100, phone: 100, integrity: 100,
                 errors: [], errorStats: { skipped: 0, tone: 0, sound: 0, extra: 0 }
+            };
+        } else {
+            // Fallback for skipped sections (1, 2, 4, 5)
+            STATE.mockExam.sectionResults[currentPart] = {
+                sectionId: section.id,
+                title: section.title || `Section ${currentPart + 1}`,
+                text: "Section Skipped",
+                totalScore: 0,
+                percent: 0,
+                tone: 0, fluency: 0, phone: 0, integrity: 0,
+                errors: [], errorStats: { skipped: 1, tone: 0, sound: 0, extra: 0 }
             };
         }
     }
@@ -1628,15 +1640,18 @@ window.nextExamPart = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                history: STATE.mockExam.sectionResults.map(r => ({
-                    section: r.title || r.sectionId,
-                    text: r.text,
-                    totalScore: r.totalScore,
-                    tone: r.tone,
-                    fluency: r.fluency,
-                    errors: r.errors,
-                    errorStats: r.errorStats
-                })),
+                history: STATE.mockExam.sectionResults.map(r => {
+                    if (!r) return { section: "Unknown", text: "", totalScore: 0 };
+                    return {
+                        section: r.title || r.sectionId || "Section",
+                        text: r.text || "",
+                        totalScore: r.totalScore || 0,
+                        tone: r.tone || 0,
+                        fluency: r.fluency || 0,
+                        errors: r.errors || [],
+                        errorStats: r.errorStats || { skipped: 1, tone: 0, sound: 0, extra: 0 }
+                    };
+                }),
                 lang: STATE.lang 
             })
         }).then(res => res.json()).then(data => {
