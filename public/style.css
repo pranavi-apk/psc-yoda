@@ -217,6 +217,13 @@ body::after {
     margin-bottom: 0.5rem;
 }
 
+/* Fix nested elements in hero-title inheriting transparency */
+.hero-title * {
+    -webkit-text-fill-color: initial;
+    background-clip: initial;
+    -webkit-background-clip: initial;
+}
+
 .hero-subtitle {
     color: var(--muted);
     font-size: 1rem;
@@ -3002,7 +3009,7 @@ body::after {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
     padding: 2rem;
-    /* backdrop-filter: blur(10px) REMOVED as requested */
+    color: var(--text); /* Explicitly set text color to avoid black inheritance */
 }
 
 .doc-card h3 {
@@ -3114,6 +3121,7 @@ body::after {
     flex-direction: column;
     gap: 1rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text); /* Explicitly set text color */
 }
 
 .detailed-part:hover {
