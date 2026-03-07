@@ -21,7 +21,7 @@
         </div>
         <div class="nav-actions" style="display: flex; gap: 10px;">
             <button id="nav-flashcard-btn" class="special-btn flashcard-nav-btn hidden" onclick="goToFlashcardList()">🃏 Flashcards</button>
-            <button id="nav-mastery-btn" class="special-btn mastery-nav-btn hidden" onclick="goToMasteryDashboard()">📊 Mastery</button>
+            <button id="nav-mastery-btn" class="special-btn mastery-nav-btn hidden" onclick="goToMasteryDashboard()">📊 Dashboard</button>
             <button id="nav-report-btn" class="special-btn hidden" onclick="completeSession()">📊 Report Card</button>
             <button id="nav-mock-btn" class="special-btn hidden" onclick="goToMockExamDashboard()">📝 Mock Exam Mode</button>
         </div>
@@ -34,6 +34,7 @@
             <p class="hero-eyebrow">普通话水平测试 (PSC)</p>
             <h1 id="welcome-title" class="hero-title">Master PSC<br>with Yoda 優答</h1>
             <p id="welcome-subtitle" class="hero-subtitle">Your AI-powered coach for the Putonghua Proficiency Test. Practice, listen, and improve every day.</p>
+            <p style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 700; color: var(--gold); font-size: 1.1rem; letter-spacing: 0.5px;">Select the level you want to achieve:</p>
 
             <div class="grade-selector">
                 <div class="grade-options">
@@ -361,9 +362,12 @@
 
     <!-- REPORT SCREEN -->
     <section id="report" class="screen">
-        <div class="report-header">
+        <div class="report-header" style="display: flex; justify-content: space-between; align-items: center;">
             <h2>📊 Session Report Card</h2>
-            <button class="back-btn" onclick="goToDashboard()">← Back to Dashboard</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="export-btn" onclick="exportToPDF()">📄 Export PDF</button>
+                <button class="back-btn" onclick="goToDashboard()">← Back</button>
+            </div>
         </div>
         <div id="report-content" class="report-content">
             <p>⏳ Generating your personal report card...</p>
@@ -519,8 +523,8 @@
     <section id="mock-exam-dashboard" class="screen">
         <div class="dashboard-header">
             <button class="back-btn" onclick="goToDashboard()">← Back</button>
-            <h2>PSC Practice Tests</h2>
-            <p>Timed simulations based on the PSC (Putonghua Proficiency Test) format.</p>
+            <h2>PSC Mock Exams</h2>
+            <p>Timed simulations of the real PSC exam.</p>
         </div>
         <div class="bento-grid" id="mock-exam-list">
             <!-- Simulated cards -->
