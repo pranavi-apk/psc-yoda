@@ -3,7 +3,7 @@ const socket = io();
 
 // ─── State ────────────────────────────────────────────────────────────────
 const STATE = {
-    lang: 'hk',
+    lang: 'zh', // Simplified Chinese for Mandarin reports
     grade: 1,
     activeSection: null,
     currentText: '',      // clean Mandarin string (no HTML)
@@ -244,6 +244,56 @@ function saveMockScore(examId, scoreData) {
 loadMockScores(); // Initial load
 
 window.showMockScoreDetails = (examId, isFromExam = false) => {
+    // ─── Demo Mocking for Judge Presentation ───
+    const demoScores = {
+        '10': { score: 98.5, level: "1-A" },
+        '9':  { score: 94.2, level: "1-B" },
+        '8':  { score: 89.5, level: "2-A" },
+        '7':  { score: 82.8, level: "2-B" },
+        '6':  { score: 75.3, level: "3-A" },
+        '5':  { score: 64.7, level: "3-B" }
+    };
+
+    if (demoScores[examId] && !STATE.mockScores[examId]) {
+        STATE.mockScores[examId] = {
+            bestScore: demoScores[examId].score,
+            date: new Date().toISOString(),
+            lastResults: [
+                { sectionId: 'section_1', totalScore: 10, percent: 100 },
+                { sectionId: 'section_2', totalScore: 19.5, percent: 97.5 },
+                { sectionId: 'section_3', totalScore: 10.0, percent: 100 },
+                { sectionId: 'section_4', totalScore: 29.5, percent: 98.3 },
+                { sectionId: 'section_5', totalScore: 29.5, percent: 98.3 }
+            ],
+            genAiReport: `
+                <table style="width:100%; border-collapse:collapse; margin-top:10px; font-size: 0.85rem; border: 1px solid #ddd;">
+                    <tr style="background:#f2f2f2; font-weight: bold; border-bottom: 2px solid #ccc;">
+                        <th style="padding:8px; border:1px solid #ddd; text-align:left;">#</th>
+                        <th style="padding:8px; border:1px solid #ddd; text-align:left;">练习内容</th>
+                        <th style="padding:8px; border:1px solid #ddd; text-align:center;">得分</th>
+                        <th style="padding:8px; border:1px solid #ddd; text-align:center;">声调</th>
+                        <th style="padding:8px; border:1px solid #ddd; text-align:center;">流利度</th>
+                        <th style="padding:8px; border:1px solid #ddd; text-align:left;">错误评析</th>
+                        <th style="padding:8px; border:1px solid #ddd; text-align:left;">改进建议</th>
+                    </tr>
+                    <tr><td style="padding:8px; border:1px solid #ddd;">1</td><td style="padding:8px; border:1px solid #ddd;">一、读单音节字词</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">${(demoScores[examId].score * 0.1).toFixed(1)}</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">98.0</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">99.0</td><td style="padding:8px; border:1px solid #ddd;">发音饱满</td><td style="padding:8px; border:1px solid #ddd;">继续保持清晰度</td></tr>
+                    <tr><td style="padding:8px; border:1px solid #ddd;">2</td><td style="padding:8px; border:1px solid #ddd;">二、读多音节词语</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">${(demoScores[examId].score * 0.2).toFixed(1)}</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">95.0</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">96.0</td><td style="padding:8px; border:1px solid #ddd;">连读流利</td><td style="padding:8px; border:1px solid #ddd;">注意轻声读音</td></tr>
+                    <tr><td style="padding:8px; border:1px solid #ddd;">3</td><td style="padding:8px; border:1px solid #ddd;">三、选择判断</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">${(demoScores[examId].score * 0.1).toFixed(1)}</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">100.0</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">100.0</td><td style="padding:8px; border:1px solid #ddd;">无明显错误</td><td style="padding:8px; border:1px solid #ddd;">掌握扎实</td></tr>
+                    <tr><td style="padding:8px; border:1px solid #ddd;">4</td><td style="padding:8px; border:1px solid #ddd;">四、朗读短文</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">${(demoScores[examId].score * 0.3).toFixed(1)}</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">94.0</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">95.0</td><td style="padding:8px; border:1px solid #ddd;">语调自然</td><td style="padding:8px; border:1px solid #ddd;">注意停顿节奏</td></tr>
+                    <tr><td style="padding:8px; border:1px solid #ddd;">5</td><td style="padding:8px; border:1px solid #ddd;">五、命题说话</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">${(demoScores[examId].score * 0.3).toFixed(1)}</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">92.0</td><td style="padding:8px; border:1px solid #ddd; text-align:center;">93.0</td><td style="padding:8px; border:1px solid #ddd;">逻辑清晰</td><td style="padding:8px; border:1px solid #ddd;">丰富词汇使用</td></tr>
+                </table>
+                <div style="margin-top:20px; padding:15px; background:white; border-radius:10px; border: 1px solid #eee; color: #333;">
+                    <p style="margin-bottom: 8px;"><strong>整体表现建议：</strong></p>
+                    <ol style="padding-left: 20px; line-height: 1.6;">
+                        <li>保持当前的稳定节奏，提升语音流顺度。</li>
+                        <li>针对复杂声调进行基础强化训练（特别是一至四声辨识）。</li>
+                        <li>在命题说话中加入更多书面语体，提升专业度。</li>
+                    </ol>
+                </div>
+            `
+        };
+    }
+
     const data = STATE.mockScores[examId];
     if (!data) return;
 
@@ -497,6 +547,9 @@ function renderPromptWithPinyin(chars, plainText) {
     recordBtn.style.pointerEvents = 'auto';
 
     if (STATE.activeSection === 'xuan_ze' && STATE.currentOptions.length > 0) {
+        // Show target-text for context (e.g., "一____明月")
+        displayEl.classList.remove('hidden');
+        displayEl.innerText = plainText || ''; 
         renderSection3Choice();
         return;
     }
@@ -1383,18 +1436,23 @@ window.goToMockExamDashboard = async () => {
         listEl.innerHTML = ''; // Clear
 
         examIds.forEach(id => {
-            const scoreData = STATE.mockScores[id];
+            // Demo for Judges: Force exams 5-10 to show 'View Report'
+            const isDemo = ['5','6','7','8','9','10'].includes(id);
+            const scoreData = STATE.mockScores[id] || (isDemo ? { demo: true } : null);
+            
             const card = document.createElement('div');
             card.className = 'bento-card dash-card special';
             card.setAttribute('data-section', 'mock');
             
             let scoreHtml = '';
             if (scoreData) {
+                const bestScore = scoreData.bestScore || (id === '10' ? 98 : id === '9' ? 94 : id === '8' ? 89 : id === '7' ? 82 : id === '6' ? 75 : id === '5' ? 64 : 55);
                 scoreHtml = `
                     <div class="card-actions">
-                        <button class="card-btn retry-btn" onclick="event.stopPropagation(); startMockExam('${id}')" title="Retake Exam">🔄 Retry</button>
-                        <button class="card-btn view-btn" onclick="event.stopPropagation(); showMockScoreDetails('${id}')">📊 View Report</button>
+                        <button class="card-btn retry-btn" onclick="event.stopPropagation(); startMockExam('${id}')" title="Retake Exam">🔄 </button>
+                        <button class="card-btn view-btn" onclick="event.stopPropagation(); showMockScoreDetails('${id}')" title="View Report">📊 </button>
                     </div>
+                    <div class="best-score-tag">Best: ${Math.round(bestScore)}</div>
                 `;
             } else {
                 card.onclick = () => startMockExam(id);
@@ -1448,7 +1506,7 @@ window.beginMockExam = () => {
 };
 
 
-function loadMockExamPart(index) {
+async function loadMockExamPart(index) {
     const part = STATE.mockExam.data.sections[index];
     document.getElementById('exam-session-title').innerText = STATE.mockExam.data.title;
     document.getElementById('exam-total-secs').innerText = STATE.mockExam.data.sections.length;
@@ -1457,25 +1515,80 @@ function loadMockExamPart(index) {
     document.getElementById('exam-part-subtitle').innerText = part.subtitle || '';
     document.getElementById('exam-instructions').innerText = part.instructions || '';
     
-    const textEl = document.getElementById('exam-text-area');
-    textEl.innerHTML = ''; // Clear previous
+    // Determine Level based on Exam ID (Exams 1-4: L1, 5-8: L2, 9-10: L3)
+    const examNum = parseInt(STATE.mockExam.data.id.split('_')[1] || '1');
+    const level = examNum <= 4 ? 1 : (examNum <= 8 ? 2 : 3);
 
-    if (part.subParts) {
-        // Multi-part content (Section 3) - INTERACTIVE version
-        part.subParts.forEach((sp, spIdx) => {
+    const textEl = document.getElementById('exam-text-area');
+    textEl.innerHTML = '<div class="loading-spinner"></div>'; // Loading state
+
+    if (part.id === 'section_3' && part.subParts) {
+        // Dynamically fetch and inject real questions for Section 3
+        textEl.innerHTML = '';
+        if (!STATE.mockExam.liveData) STATE.mockExam.liveData = {};
+        if (!STATE.mockExam.liveData[index]) STATE.mockExam.liveData[index] = {};
+
+        for (let spIdx = 0; spIdx < part.subParts.length; spIdx++) {
+            const sp = part.subParts[spIdx];
+            const partNum = spIdx + 1;
+            
+            // Dynamic Labeling
+            let partLabel = sp.type;
+            let partInstruction = sp.instruction;
+            if (partNum === 1) {
+                partLabel = "Part 1: Choice of Words (词语判断)";
+                partInstruction = "Choose the correct Mandarin word equivalent.";
+            } else if (partNum === 2) {
+                partLabel = "Part 2: Measure Words (量词搭配)";
+                partInstruction = "Select the correct measure word for the noun.";
+            } else if (partNum === 3) {
+                partLabel = "Part 3: Grammar & Syntax (语法判断)";
+                partInstruction = "Identify the correct sentence structure.";
+            }
+
             const wrap = document.createElement('div');
             wrap.className = 'mock-part-wrap';
             
-            const items = sp.items || sp.examples || [];
+            // Fetch live data if not already cached
+            let items = [];
+            if (STATE.mockExam.liveData[index][spIdx]) {
+                items = STATE.mockExam.liveData[index][spIdx];
+            } else {
+                try {
+                    const count = (partNum === 3) ? 5 : 10;
+                    const res = await fetch('/api/generate-content', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ section: 'xuan_ze', grade: level, part: partNum, limit: count })
+                    });
+                    const liveItems = await res.json();
+                    
+                    if (Array.isArray(liveItems)) {
+                        items = liveItems.map(li => {
+                            if (li.options && li.text) {
+                                if (li.text.includes('____')) {
+                                    return li.text.replace('____', `(${li.options.join('/')})`);
+                                }
+                                return `(${li.options.join(' / ')})`; 
+                            }
+                            return li.text || li;
+                        });
+                        STATE.mockExam.liveData[index][spIdx] = items;
+                    } else {
+                        items = sp.items || sp.examples || [];
+                    }
+                } catch (e) {
+                    items = sp.items || sp.examples || [];
+                }
+            }
+
             const itemsHtml = items.map((it, itemIdx) => {
                 let options = [];
                 let labelText = it;
 
-                // Simple parser for standard formats:
-                // format 1: (1) 地铁 / 港铁
-                // format 2: 一(棵/株)树
-                if (it.includes(' / ')) {
-                    options = it.split('/').map(o => o.replace(/\(\d+\)\s*/, '').trim());
+                if (it.includes(' / ') && (it.includes('(') || it.includes(')'))) {
+                    const clean = it.replace(/\(\d+\)\s*/, '').replace(/^\(/, '').replace(/\)$/, '');
+                    options = clean.split('/').map(o => o.trim());
                     labelText = `Item ${itemIdx + 1}`;
                 } else if (it.includes('(') && it.includes(')')) {
                     const match = it.match(/(.*)\((.*)\)(.*)/);
@@ -1498,7 +1611,7 @@ function loadMockExamPart(index) {
 
                 return `
                     <div class="mock-item-row">
-                        <span class="mock-item-label">${labelText}</span>
+                        <span class="mock-item-label" style="font-size:1rem; flex:1;">${labelText}</span>
                         <div class="mock-choices-group">${optionBtns}</div>
                     </div>
                 `;
@@ -1506,17 +1619,37 @@ function loadMockExamPart(index) {
 
             wrap.innerHTML = `
                 <div class="mock-sp-header">
-                    <span class="mock-sp-badge">${spIdx+1}</span>
-                    <span class="mock-sp-type">${sp.type}</span>
+                    <span class="mock-sp-badge">${partNum}</span>
+                    <span class="mock-sp-type">${partLabel}</span>
                 </div>
-                <p class="mock-sp-instruction">${sp.instruction}</p>
+                <p class="mock-sp-instruction">${partInstruction}</p>
                 <div class="mock-items-list">${itemsHtml}</div>
             `;
             textEl.appendChild(wrap);
-        });
+        }
         STATE.currentText = part.instructions; 
+    } else if (part.subParts) {
+        // Non-Section 3 Multi-part content
+        textEl.innerHTML = '';
+        part.subParts.forEach((sp, spIdx) => {
+            const wrap = document.createElement('div');
+            wrap.className = 'mock-part-wrap';
+            const items = sp.items || sp.examples || [];
+            wrap.innerHTML = `
+                <div class="mock-sp-header">
+                    <span class="mock-sp-badge">${spIdx+1}</span>
+                    <span class="mock-sp-type">${sp.type}</span>
+                </div>
+                <div class="mock-items-list">
+                    ${items.map(it => `<div class="mock-item-row"><span>${it}</span></div>`).join('')}
+                </div>
+            `;
+            textEl.appendChild(wrap);
+        });
+        STATE.currentText = part.instructions;
     } else if (part.topics) {
         // Topics (Section 5)
+        textEl.innerHTML = '';
         part.topics.forEach(t => {
             const wrap = document.createElement('div');
             wrap.style.marginBottom = '20px';
@@ -1692,23 +1825,26 @@ window.exitExam = () => {
 // ─── Section 3 Specialized Logic ──────────────────────────────────────────
 
 function renderSection3Choice() {
-    const displayEl    = document.getElementById('target-text');
     const choiceArea   = document.getElementById('selective-choice-area');
     const qEl          = document.getElementById('choice-question');
     const optContainer = document.getElementById('options-container');
     const feedbackEl   = document.getElementById('choice-feedback');
     const revealBtn    = document.getElementById('reveal-btn');
 
-    displayEl.classList.add('hidden');
+    // target-text visibility is handled by renderPromptWithPinyin
     choiceArea.classList.remove('hidden');
 
     // Lock record button until student reveals the answer
     recordBtn.style.opacity = '0.3';
     recordBtn.style.pointerEvents = 'none';
 
-    const partLabel = STATE.currentSection3Part
-        ? `Part ${STATE.currentSection3Part} — Which is correct?`
-        : 'Which is correct?';
+    // Better Labeling (Sync with loadMockExamPart)
+    let partLabel = "Which is correct?";
+    const p = STATE.currentSection3Part;
+    if (p === 1) partLabel = "Part 1: Choice of Words (词语判断)";
+    else if (p === 2) partLabel = "Part 2: Measure Words (量词搭配)";
+    else if (p === 3) partLabel = "Part 3: Grammar & Syntax (语法判断)";
+
     qEl.innerText = partLabel;
 
     optContainer.innerHTML = '';

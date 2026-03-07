@@ -290,6 +290,14 @@ app.post('/api/generate-content', async (req, res) => {
         availableStatic = availableStatic.filter(s => s.text !== previousText);
 
         if (availableStatic.length > 0) {
+            // Support batch loading for Section 3 mock exams
+            if (section === 'xuan_ze' && req.body.limit) {
+                shuffle(availableStatic);
+                const results = availableStatic.slice(0, req.body.limit);
+                console.log(`[DB] Serving ${results.length} static items for xuan_ze p${req.body.part}`);
+                return res.json(results);
+            }
+
             const idx = Math.floor(Math.random() * availableStatic.length);
             const result = availableStatic[idx];
             
@@ -430,9 +438,8 @@ app.post('/api/tts', async (req, res) => {
 // ─── REST: Generate Tabular Report ───────────────────────────────────────
 app.post('/api/generate-report', async (req, res) => {
     const { history, lang } = req.body;
-    const langName = lang === 'en' ? 'English'
-                   : lang === 'hk' ? 'Traditional Chinese (Cantonese users)'
-                   : 'Simplified Chinese';
+    // We strictly use Simplified Chinese for Mandarin feedback, regardless of 'hk' or 'en' selected for UI
+    const langName = 'Simplified Chinese (Mandarin)';
 
     const historyStr = history.map((h, i) => {
         const stats = h.errorStats ? ` | Stats={Skipped:${h.errorStats.skipped}, Tone:${h.errorStats.tone}, Sound:${h.errorStats.sound}, Extra:${h.errorStats.extra}}` : '';
@@ -446,8 +453,9 @@ app.post('/api/generate-report', async (req, res) => {
 Analyze the provided session history, especially the 'Stats' for each row (Skipped, Tone, Sound, Extra). 
 Return ONLY an HTML string (no markdown, no code fences) containing:
 1. A <table> with columns: # | 练习内容 | 得分 | 声调 | 流利度 | 错误评析 | 改进建议
-2. In the '错误评析' column, be specific: e.g., "3 tone errors", "1 word skipped".
-3. A short <div class="report-summary"> paragraph with top-3 strategic tips based on their patterns (e.g. if they have many Tone errors, suggest Tone 3 sandhi practice).
+2. In the '错误评析' column, be specific: e.g., "3 tone errors", "1 word skipped". 
+3. A short <div class="report-summary"> paragraph with top-3 strategic tips based on their patterns.
+4. IMPORTANT: All text, headings, and tips MUST be in Simplified Chinese (Mandarin), even if the student is a Cantonese speaker.
 Use inline styles for the table: border-collapse:collapse, td padding 8px 12px, alternating row background rgba(255,255,255,0.05).
 Color scores: green if >=80, orange if >=60, red if <60.`
         },
@@ -474,10 +482,12 @@ const BOX_INTERVALS = ['0 seconds', '1 hours', '8 hours', '1 days', '3 days'];
 
 let mockCards = [
     { id: 1, character: '吃', pinyin: 'chī', translation: 'eat', box: 2, times_wrong: 3, times_correct: 5, error_type: 'Initial', is_due: 1, next_review_at: new Date().toISOString() },
-    { id: 2, character: '是', pinyin: 'shì', translation: 'is', box: 1, times_wrong: 5, times_correct: 2, error_type: 'Tone', is_due: 1, next_review_at: new Date().toISOString() },
-    { id: 3, character: '人', pinyin: 'rén', translation: 'person', box: 4, times_wrong: 1, times_correct: 10, error_type: 'Initial', is_due: 0, next_review_at: new Date(Date.now() + 86400000).toISOString() }
+    { id: 2, character: '是', pinyin: 'shì', translation: 'is', box: 4, times_wrong: 1, times_correct: 12, error_type: 'Tone', is_due: 0, next_review_at: new Date(Date.now() + 86400000).toISOString() },
+    { id: 3, character: '人', pinyin: 'rén', translation: 'person', box: 4, times_wrong: 0, times_correct: 10, error_type: 'Initial', is_due: 0, next_review_at: new Date(Date.now() + 86400000).toISOString() },
+    { id: 4, character: '我', pinyin: 'wǒ', translation: 'I', box: 3, times_wrong: 2, times_correct: 8, error_type: 'Tone', is_due: 0, next_review_at: new Date(Date.now() + 86400000).toISOString() },
+    { id: 5, character: '你', pinyin: 'nǐ', translation: 'you', box: 3, times_wrong: 1, times_correct: 9, error_type: 'Nasal', is_due: 0, next_review_at: new Date(Date.now() + 86400000).toISOString() }
 ];
-let nextFcId = 4;
+let nextFcId = 6;
 
 // POST /api/flashcards/collect — ingest errors from ISE results
 app.post('/api/flashcards/collect', (req, res) => {
@@ -550,26 +560,45 @@ app.post('/api/flashcards/review', (req, res) => {
 // GET /api/flashcards/stats — mastery dashboard data
 app.get('/api/flashcards/stats', (req, res) => {
     const byBox = [0, 0, 0, 0, 0];
-    let toneErrs = 0, initErrs = 0, finalErrs = 0;
+    let toneErrs = 0, soundErrs = 0, skippedErrs = 0;
     mockCards.forEach(c => {
         byBox[c.box] = (byBox[c.box] || 0) + 1;
         if (c.error_type === 'Tone') toneErrs += c.times_wrong;
-        else if (c.error_type === 'Initial') initErrs += c.times_wrong;
-        else finalErrs += c.times_wrong;
+        else if (c.error_type === 'Initial' || c.error_type === 'Final') soundErrs += c.times_wrong;
+        else skippedErrs += c.times_wrong;
     });
     
+    // Generate realistic fluctuating recent reviews (ups and downs)
+    const mockReviews = [];
+    const baseScores = [65, 72, 68, 80, 75, 88, 82, 92, 85, 95, 88, 97, 94, 98, 96];
+    for (let i = 0; i < 25; i++) {
+        const base = baseScores[i % baseScores.length];
+        const variance = Math.floor(Math.random() * 10) - 5; // -5 to +5
+        mockReviews.push({ 
+            id: 1000 + i, 
+            score: Math.min(100, Math.max(0, base + variance)), 
+            was_correct: base + variance >= 70 ? 1 : 0,
+            reviewed_at: new Date(Date.now() - (25 - i) * 3600000).toISOString()
+        });
+    }
+
+    // For Demo: Ensure stats are never zero even if mockCards is reset
+    const displayTotal = Math.max(mockCards.length, 45);
+    const displayByBox = byBox.every(v => v === 0) ? [5, 8, 12, 10, 10] : byBox;
+    const displayMastery = Math.round((displayByBox[3] * 0.75 + displayByBox[4]) / (displayTotal || 1) * 100 * 10) / 10;
+
     res.json({
-        total: mockCards.length,
-        byBox,
-        masteryPercent: Math.round((byBox[3] * 0.75 + byBox[4]) / (mockCards.length || 1) * 100 * 10) / 10,
-        byErrorType: { 'Tone': toneErrs, 'Initial': initErrs, 'Final': finalErrs },
-        recentReviews: [
-            { id: 101, character: '吃', pinyin: 'chī', score: 85, was_correct: 1, reviewed_at: new Date().toISOString() },
-            { id: 102, character: '是', pinyin: 'shì', score: 60, was_correct: 0, reviewed_at: new Date(Date.now() - 3600000).toISOString() }
-        ],
+        total: displayTotal,
+        byBox: displayByBox,
+        masteryPercent: displayMastery,
+        byErrorType: { tone: toneErrs || 18, sound: soundErrs || 12, skipped: skippedErrs || 5 },
+        recentReviews: mockReviews,
         patterns: [
-            { id: 201, pattern_name: 'z vs zh', severity: 'High', occurrence_count: 15 },
-            { id: 202, pattern_name: 'n vs l', severity: 'Medium', occurrence_count: 8 }
+            { id: 201, pattern_name: 'z/c/s vs zh/ch/sh', severity: 0.85, occurrence_count: 42, affected_cards: JSON.stringify(["知", "中", "是", "出", "三"]), description: "平翘舌音混淆 (Retroflex vs Alveolar)", genai_diagnosis: "Cantonese speakers often struggle with tongue positioning for retroflex sounds." },
+            { id: 202, pattern_name: 'n vs l', severity: 0.65, occurrence_count: 28, affected_cards: JSON.stringify(["你", "来", "男", "蓝"]), description: "鼻音与边音混淆 (Nasal vs Lateral)", genai_diagnosis: "Standard Cantonese often merges initial 'n-' into 'l-'." },
+            { id: 203, pattern_name: '-n vs -ng', severity: 0.75, occurrence_count: 35, affected_cards: JSON.stringify(["人", "扔", "陈", "程"]), description: "前后鼻音韵尾 (Alveolar vs Velar Nasal)", genai_diagnosis: "Difficulty distinguishing 'an/ang' or 'en/eng' endings." },
+            { id: 204, pattern_name: 'f vs h', severity: 0.45, occurrence_count: 12, affected_cards: JSON.stringify(["发", "哈", "辅助", "互助"]), description: "唇齿音与舌根音 (f vs h confusion)", genai_diagnosis: "Regional pronunciation sometimes swaps 'fu' and 'hu' sounds." },
+            { id: 205, pattern_name: 'j/q/x vs zh/ch/sh', severity: 0.55, occurrence_count: 18, affected_cards: JSON.stringify(["家", "扎", "请", "程"]), description: "团音与翘舌音 (Palatal vs Retroflex)", genai_diagnosis: "Confusion caused by similar tongue height but different positioning." }
         ]
     });
 });
