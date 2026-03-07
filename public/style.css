@@ -39,8 +39,9 @@ body {
     background: var(--bg);
     color: var(--text);
     font-family: var(--font);
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* ─── Animated Starfield Background ─────────────────────── */
@@ -158,10 +159,11 @@ body::after {
     display: none;
     position: relative;
     z-index: 1;
-    height: 100vh;
-    padding: 5rem 1.5rem 1rem;
+    min-height: 100vh;
+    padding: 5rem 1.5rem 2rem;
     animation: screenIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .screen.active { 
@@ -1207,6 +1209,27 @@ body::after {
 .close-modal:hover { border-color: var(--gold-glow); background: var(--gold-dim); }
 
 /* ─── Responsive ─────────────────────────────────────────── */
+
+/* iPad & small laptop (768px - 1024px) */
+@media (max-width: 1024px) {
+    #onboarding.screen.active {
+        flex-direction: column-reverse;
+        gap: 2rem;
+        padding-top: 5rem;
+        align-items: center;
+    }
+    .mascot-wrapper { width: 220px; height: 220px; }
+    .mascot-img     { width: 190px; height: 190px; }
+    .bento-grid     { grid-template-columns: 1fr 1fr; }
+    .bento-card.wide { grid-column: span 2; }
+    #mock-exam-list { grid-template-columns: repeat(2, 1fr) !important; }
+    .metrics        { grid-template-columns: repeat(2, 1fr); }
+    .result-area    { padding: 1rem; }
+    .hero-title     { font-size: clamp(2rem, 4vw, 3rem); }
+    .nav            { padding: 0.75rem 1.5rem; }
+}
+
+/* Mobile (≤768px) */
 @media (max-width: 768px) {
     #onboarding.screen.active {
         flex-direction: column-reverse;
@@ -1218,12 +1241,14 @@ body::after {
     .mascot-bubble  { right: -20px; top: 0; font-size: 0.72rem; }
     .bento-grid     { grid-template-columns: 1fr 1fr; }
     .bento-card.wide { grid-column: span 2; }
+    #mock-exam-list { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
 @media (max-width: 500px) {
     .bento-grid     { grid-template-columns: 1fr; }
     .bento-card.wide { grid-column: span 1; }
     .metrics-grid   { grid-template-columns: repeat(2,1fr); }
+    #mock-exam-list { grid-template-columns: 1fr !important; }
 }
 
 /* ── Yoda Reaction Image in Result Card ──────────────────── */
