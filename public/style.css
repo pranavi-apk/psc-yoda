@@ -2814,10 +2814,11 @@ body::after {
 /* Mock Exam Interactive Section 3 */
 .mock-part-wrap {
     margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.25); /* Darker container background */
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 .mock-sp-header {
     display: flex;
@@ -2865,14 +2866,15 @@ body::after {
     gap: 10px;
 }
 .mock-choice-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text);
-    padding: 6px 16px;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.12); /* Brighter initial state */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Stronger border */
+    color: #ffffff;
+    padding: 8px 18px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.2s;
-    font-size: 0.95rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1rem;
+    font-weight: 500;
 }
 .mock-choice-btn:hover {
     background: rgba(255, 255, 255, 0.1);

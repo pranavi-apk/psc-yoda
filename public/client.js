@@ -346,8 +346,6 @@ window.handleBackFromExercise = () => {
     window.goToDashboard();
 };
 
-window.closeModal = () => yodaModal.classList.remove('show');
-
 function updateUIText() {
     document.getElementById('welcome-title').innerText  = LOCALE[STATE.lang].welcome;
     document.getElementById('welcome-subtitle').innerText = LOCALE[STATE.lang].subtitle;
