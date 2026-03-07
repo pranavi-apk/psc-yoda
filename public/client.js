@@ -577,9 +577,10 @@ function renderPromptWithPinyin(chars, plainText) {
 
     if (STATE.activeSection === 'xuan_ze' && STATE.currentOptions.length > 0) {
         // Show target-text for context (e.g., "一____明月") EXCEPT for Part 1 (Answer Leak)
-        if (STATE.currentSection3Part === 1) {
+        if (Number(STATE.currentSection3Part) === 1) {
             displayEl.classList.add('hidden');
             displayEl.style.display = 'none';
+            displayEl.innerText = ''; // Clear stale 'Generating...' or answer
         } else {
             displayEl.classList.remove('hidden');
             displayEl.style.display = 'flex';
@@ -1937,6 +1938,12 @@ window.revealAnswer = () => {
     // Update target text so speech evaluation scores the CORRECT answer
     STATE.currentText  = STATE.correctAnswer;
     STATE.currentChars = STATE.correctAnswer.split('').map(c => ({ c, p: '' }));
+
+    // Show the word on the left so the student can practice saying it
+    const displayEl = document.getElementById('target-text');
+    displayEl.innerText = STATE.correctAnswer;
+    displayEl.classList.remove('hidden');
+    displayEl.style.display = 'flex';
 };
 
 /* ==========================================================================
