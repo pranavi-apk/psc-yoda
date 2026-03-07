@@ -177,29 +177,30 @@ function switchScreen(name) {
         }
     }
 
-    // Toggle nav buttons visibility (only hide on onboarding)
-    const navBtns = ['nav-mock-btn', 'nav-flashcard-btn', 'nav-mastery-btn', 'nav-report-btn'];
-    navBtns.forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-            if (name === 'onboarding') {
-                btn.classList.add('hidden');
-            } else {
-                btn.classList.remove('hidden');
-                
-                // Dynamic Toggle for Mock Exam / Practice Mode
-                if (id === 'nav-mock-btn') {
-                    if (name === 'mockExamDashboard') {
-                        btn.innerHTML = '📝 Practice Mode';
-                        btn.onclick = () => goToDashboard();
-                    } else {
-                        btn.innerHTML = '📝 Mock Exam Mode';
-                        btn.onclick = () => goToMockExamDashboard();
-                    }
-                }
+    // Toggle nav menu visibility (only hide on onboarding/exams)
+    const navMenu = document.getElementById('main-nav');
+    if (navMenu) {
+        if (name === 'onboarding') {
+            navMenu.classList.add('hidden');
+        } else {
+            navMenu.classList.remove('hidden');
+            
+            // Manage Active State
+            const navLinks = {
+                'dashboard': 'nav-home',
+                'mockExamDashboard': 'nav-mock',
+                'masteryDashboard': 'nav-mastery',
+                'aboutPsc': 'nav-about'
+            };
+
+            document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
+            const activeId = navLinks[name];
+            if (activeId) {
+                const activeLink = document.getElementById(activeId);
+                if (activeLink) activeLink.classList.add('active');
             }
         }
-    });
+    }
 
     if (name === 'dashboard') {
         const gradeLabels = { 1: '一级 Grade 1', 2: '二级 Grade 2', 3: '三级 Grade 3' };

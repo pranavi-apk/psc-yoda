@@ -95,15 +95,44 @@ body::after {
     border-bottom: 1px solid var(--card-border);
 }
 
-.nav-actions {
+.nav-menu {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.nav-actions .special-btn {
-    font-size: 0.72rem;
-    padding: 6px 14px;
+.nav-menu a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s;
+    opacity: 0.7;
+}
+
+.nav-menu a:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-menu a.active {
+    opacity: 1;
+    color: var(--gold);
+    background: rgba(212, 175, 55, 0.1);
+    font-weight: 700;
+}
+
+.nav-divider {
+    width: 1px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 4px;
 }
 
 .logo-link {

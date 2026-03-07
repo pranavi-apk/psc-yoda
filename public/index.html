@@ -19,11 +19,14 @@
                 <span class="logo-text">Yoda <span class="gold">優答</span></span>
             </a>
         </div>
-        <div class="nav-actions" style="display: flex; gap: 10px;">
-            <button id="nav-flashcard-btn" class="special-btn flashcard-nav-btn hidden" onclick="goToFlashcardList()">🃏 Flashcards</button>
-            <button id="nav-mastery-btn" class="special-btn mastery-nav-btn hidden" onclick="goToMasteryDashboard()">📊 Dashboard</button>
-            <button id="nav-report-btn" class="special-btn hidden" onclick="completeSession()">📊 Report Card</button>
-            <button id="nav-mock-btn" class="special-btn hidden" onclick="goToMockExamDashboard()">📝 Mock Exam Mode</button>
+        <div class="nav-menu" id="main-nav">
+            <a href="javascript:void(0)" onclick="goToDashboard()" id="nav-home">Home</a>
+            <div class="nav-divider"></div>
+            <a href="javascript:void(0)" onclick="goToMockExamDashboard()" id="nav-mock">Mock Exam</a>
+            <div class="nav-divider"></div>
+            <a href="javascript:void(0)" onclick="goToMasteryDashboard()" id="nav-mastery">Mastery</a>
+            <div class="nav-divider"></div>
+            <a href="javascript:void(0)" onclick="goToAboutPSC()" id="nav-about">About</a>
         </div>
     </nav>
 
