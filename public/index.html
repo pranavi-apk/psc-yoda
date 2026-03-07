@@ -128,19 +128,6 @@
                 <p>3-min free talk on a given topic.</p>
                 <div class="psc-badge">Section 5</div>
             </div>
-            <!-- Flashcard Dictionary (wide gold card) -->
-            <div class="bento-card wide flashcard-bento" onclick="goToFlashcardList()">
-                <div class="card-content">
-                    <div class="card-icon">复</div>
-                    <div class="text-content">
-                        <h3>复习词库</h3>
-                        <p>AI-powered spaced repetition. View all your error cards, track progress &amp; start targeted review.</p>
-                    </div>
-                </div>
-                <!-- Mini mastery snippet on the card -->
-                <div class="mini-mastery-stats" id="dashboard-mastery-stats">0 Mastered</div>
-            </div>
-
             <!-- Playground -->
             <div class="bento-card special" onclick="goToPlaygroundDashboard()">
                 <div class="card-icon">🎮</div>
@@ -150,7 +137,7 @@
             </div>
 
             <!-- Mastery Dashboard -->
-            <div class="bento-card mastery-bento" onclick="goToMasteryDashboard()">
+            <div class="bento-card mastery-bento" onclick="completeSession()">
                 <div class="card-icon">析</div>
                 <h3>学情分析</h3>
                 <p>Track progress, view weakness patterns &amp; AI diagnosis.</p>
@@ -611,6 +598,17 @@
         </div>
 
         <div class="bento-grid" style="overflow-y:auto; max-height: calc(100vh - 180px);">
+            <!-- Flashcard Dictionary -->
+            <div class="bento-card wide flashcard-bento" onclick="goToFlashcardList()">
+                <div class="card-content">
+                    <div class="card-icon">复</div>
+                    <div class="text-content">
+                        <h3>复习词库</h3>
+                        <p>AI-powered spaced repetition. View all your error cards, track progress &amp; start targeted review.</p>
+                    </div>
+                </div>
+                <div class="mini-mastery-stats" id="dashboard-mastery-stats">0 Mastered</div>
+            </div>
             <div class="bento-card" onclick="startMatchGame()">
                 <div class="card-icon">🔗</div>
                 <h3>Retroflex Match-Up</h3>
