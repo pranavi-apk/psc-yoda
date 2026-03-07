@@ -605,17 +605,23 @@ async function startRecording() {
         STATE.recordingBuffer = [];
         if (STATE.playbackUrl) { URL.revokeObjectURL(STATE.playbackUrl); STATE.playbackUrl = null; }
 
-        socket.emit('start-evaluation', {
-            language: 'cn_vip',
-            text: STATE.currentText || '今天天气很好。'
-        });
+        const isMingTi = STATE.activeSection === 'ming_ti';
+
+        if (!isMingTi) {
+            socket.emit('start-evaluation', {
+                language: 'cn_vip',
+                text: STATE.currentText || '今天天气很好。'
+            });
+        }
 
         processor.port.onmessage = (e) => {
             if (!isRecording) return;
             const inputData = e.data;
             STATE.recordingBuffer.push(new Float32Array(inputData));
-            const down = downsampleBuffer(inputData, sampleRate, 16000);
-            socket.emit('audio-data', floatTo16BitPCM(down));
+            if (!isMingTi) {
+                const down = downsampleBuffer(inputData, sampleRate, 16000);
+                socket.emit('audio-data', floatTo16BitPCM(down));
+            }
         };
 
         isRecording = true;
@@ -645,20 +651,27 @@ function stopRecording() {
     bEl.classList.remove('recording');
     txtEl.innerText = isExam ? 'Start Recording' : 'Start Recording';
 
+    let mergedFloat;
     if (STATE.recordingBuffer.length > 0 && audioContext) {
         const sr = audioContext.sampleRate;
         const totalLen = STATE.recordingBuffer.reduce((s, b) => s + b.length, 0);
-        const merged = new Float32Array(totalLen);
+        mergedFloat = new Float32Array(totalLen);
         let offset = 0;
-        for (const chunk of STATE.recordingBuffer) { merged.set(chunk, offset); offset += chunk.length; }
-        const wavBlob = encodeWAV(merged, sr);
+        for (const chunk of STATE.recordingBuffer) { mergedFloat.set(chunk, offset); offset += chunk.length; }
+        const wavBlob = encodeWAV(mergedFloat, sr);
         STATE.playbackUrl = URL.createObjectURL(wavBlob);
     }
 
     if (processor) { processor.disconnect(); input.disconnect(); }
     if (stream)    { stream.getTracks().forEach(t => t.stop()); }
     if (audioContext) audioContext.close();
-    socket.emit('stop-evaluation');
+
+    const isMingTi = STATE.activeSection === 'ming_ti';
+    if (!isMingTi) {
+        socket.emit('stop-evaluation');
+    } else if (mergedFloat) {
+        submitFreeTalk(mergedFloat, audioContext ? audioContext.sampleRate : 48000);
+    }
 }
 
 // ─── ISE Result Handling ──────────────────────────────────────────────────
@@ -667,6 +680,15 @@ socket.on('ise-result', (data) => renderResult(data.xml));
 socket.on('ise-error',  (msg)  => console.error('ISE error:', msg));
 
 function renderResult(xmlStr) {
+    // Reset standard labels in case we just came from Free Talk
+    const labels = document.querySelectorAll('.metrics .metric .label');
+    if (labels && labels.length === 4) {
+        labels[0].innerText = 'Tone 声调';
+        labels[1].innerText = 'Fluency 流利';
+        labels[2].innerText = 'Phone 发音';
+        labels[3].innerText = 'Integrity 完整';
+    }
+
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlStr, 'text/xml');
 
@@ -1030,6 +1052,104 @@ function downsampleBuffer(buffer, sampleRate, outSampleRate) {
         bufIdx = next;
     }
     return result;
+}
+
+// ─── Free Talk Pipeline ──────────────────────────────────────────────────
+function arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+}
+
+async function submitFreeTalk(mergedFloat, sampleRate) {
+    const txtEl = STATE.activeSection === 'mock' ? document.getElementById('exam-record-text') : document.getElementById('record-text');
+    txtEl.innerText = 'Analyzing Free Talk...';
+    
+    try {
+        const downsampled = downsampleBuffer(mergedFloat, sampleRate, 16000);
+        const pcmBuffer = floatTo16BitPCM(downsampled);
+        const base64Audio = arrayBufferToBase64(pcmBuffer);
+        
+        const topicMatch = STATE.currentText || 'Free Talk Topic';
+        
+        const res = await fetch('/api/freetalk/grade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                topic: topicMatch,
+                audioBase64: base64Audio
+            })
+        });
+        
+        if (!res.ok) throw new Error('Grading failed on server');
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        renderFreeTalkResult(data);
+    } catch (e) {
+        console.error('Free Talk submission error:', e);
+        alert('Failed to grade Free Talk: ' + e.message);
+        txtEl.innerText = STATE.activeSection === 'mock' ? 'Start Recording' : 'Start Recording';
+    }
+}
+
+function renderFreeTalkResult(data) {
+    const isExam = STATE.activeSection === 'mock';
+    const txtEl = isExam ? document.getElementById('exam-record-text') : document.getElementById('record-text');
+    txtEl.innerText = isExam ? 'Start Recording' : 'Start Recording';
+    
+    // Switch to result UI
+    resultArea.classList.remove('hidden');
+    
+    // Circle chart override
+    document.querySelector('.circle').style.strokeDasharray = `${data.totalScore}, 100`;
+    document.querySelector('.percentage').textContent = Math.round(data.totalScore);
+    
+    // Override metric labels
+    const labels = document.querySelectorAll('.metrics .metric .label');
+    if (labels && labels.length === 4) {
+        labels[0].innerText = 'Vocabulary 词汇';
+        labels[1].innerText = 'Grammar 语法';
+        labels[2].innerText = 'Relevance 扣题';
+        labels[3].innerText = 'Fluency 流利';
+    }
+
+    document.getElementById('score-tone').innerText      = data.vocabularyScore;
+    document.getElementById('score-fluency').innerText   = data.grammarScore;
+    document.getElementById('score-phone').innerText     = data.relevanceScore;
+    document.getElementById('score-integrity').innerText = data.fluencyScore;
+    
+    // Display Mentor diagnostic
+    const diagEl = document.getElementById('mentor-diagnostic');
+    diagEl.innerHTML = `<h4><span class="mic-icon">🧐</span> AI Examiner Feedback</h4>
+        <div style="margin-top:10px; opacity:0.9;"><strong>Transcript:</strong> "${data.transcript}"</div>
+        <div style="margin-top:15px; color:var(--text-color);">${data.feedback}</div>
+        <div style="margin-top:15px; font-size:0.85em; opacity:0.6;">Est. Duration: ${data.duration}s</div>`;
+    diagEl.classList.remove('hidden');
+    document.getElementById('mentor-tip').style.display = 'none';
+    
+    // Yoda Popup for Free Talk Result
+    let reactionImg;
+    if (data.totalScore < 30) reactionImg = 'Try_Again_Yoda.png';
+    else if (data.totalScore < 70) reactionImg = 'right_yoda.png';
+    else if (data.totalScore < 95) reactionImg = 'good_yoda.png';
+    else reactionImg = 'Yoda.png';
+    
+    showYodaPopup(reactionImg, 'Free Talk Graded!', Math.round(data.totalScore));
+    
+    // Save to session history so Report Card can parse it
+    STATE.sessionHistory.push({
+        section:      'ming_ti',
+        text:         STATE.currentText,
+        totalScore:   data.totalScore,
+        tone: data.vocabularyScore, fluency: data.fluencyScore,
+        phone: data.grammarScore, integrity: data.relevanceScore,
+        errors:       [],
+        errorStats:   { skipped: 0, tone: 0, sound: 0, extra: 0 }
+    });
 }
 
 function floatTo16BitPCM(input) {

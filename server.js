@@ -20,34 +20,26 @@ const PIXABAY_KEY = '54890520-5361b01bd79c68d8fb64b86d5'; // pixabay.com/api
 // ─── Google Cloud TTS Config ─────────────────────────────────────────────────
 const GOOGLE_TTS_KEY = 'AIzaSyBcJPu6AfeVPwdnWBwuDW9Wl-pBtITYQM0';
 
-// ─── Gemini Config ───────────────────────────────────────────────────
-const GEMINI_CONFIG = {
-    endpoint: 'generativelanguage.googleapis.com',
-    path: '/v1beta/openai/chat/completions',
-    apiKey: process.env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY_HERE',
-    model: 'gemini-2.5-flash'
+// ─── Azure OpenAI Config ───────────────────────────────────────────────────
+const AZURE_CONFIG = {
+    endpoint: 'https://innochat-eus2.openai.azure.com/',
+    apiKey: '6036acce36954f1aa7923996e0278538',
+    apiVersion: '2025-01-01-preview',
+    deployment: 'gpt-5-chat-2'
 };
 
-async function callOpenAIApi(messages, maxTokens = 600) {
-    const body = JSON.stringify({ model: GEMINI_CONFIG.model, messages, max_tokens: maxTokens, temperature: 0.85 });
+async function callAzureOpenAI(messages, maxTokens = 600) {
+    const url = `${AZURE_CONFIG.endpoint}openai/deployments/${AZURE_CONFIG.deployment}/chat/completions?api-version=${AZURE_CONFIG.apiVersion}`;
+    const body = JSON.stringify({ messages, max_tokens: maxTokens, temperature: 0.85 });
     return new Promise((resolve, reject) => {
-        const req = https.request({
-            hostname: GEMINI_CONFIG.endpoint,
-            path: GEMINI_CONFIG.path,
+        const req = https.request(url, {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${GEMINI_CONFIG.apiKey}` 
-            }
+            headers: { 'Content-Type': 'application/json', 'api-key': AZURE_CONFIG.apiKey }
         }, (res) => {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
-                try {
-                    const parsed = JSON.parse(data);
-                    if (parsed.error) return reject(new Error(parsed.error.message));
-                    resolve(parsed.choices[0].message.content);
-                }
+                try { resolve(JSON.parse(data).choices[0].message.content); }
                 catch (e) { reject(new Error('Parse error: ' + data)); }
             });
         });
@@ -114,7 +106,7 @@ Incorporate these specific sounds frequently into the generated content.`
     const tokenLimit = isLongSection ? 1200 : 450;
 
     try {
-        const raw = await callOpenAIApi(messages, tokenLimit);
+        const raw = await callAzureOpenAI(messages, tokenLimit);
         // Strip markdown code fences if model wraps in ```json
         let cleaned = raw.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
         // Attempt to repair truncated JSON (add closing brackets if missing)
@@ -466,7 +458,7 @@ Color scores: green if >=80, orange if >=60, red if <60.`
     ];
 
     try {
-const report = await callOpenAIApi(messages, 1200);
+        const report = await callAzureOpenAI(messages, 1200);
         const cleaned = report.trim().replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
         res.json({ report: cleaned });
     } catch (e) {
@@ -618,6 +610,99 @@ app.post('/api/flashcards/coaching-tips', async (req, res) => {
             "中": "Make sure it is a retroflex sound, not a dental affricate."
         }
     });
+});
+
+// ─── Free Talk Grading Pipeline (Google STT + Azure OpenAI) ──────────────
+app.post('/api/freetalk/grade', async (req, res) => {
+    try {
+        const { audioBase64, topic } = req.body;
+        if (!audioBase64) return res.status(400).json({ error: 'No audio provided' });
+
+        // 1. Google Speech-to-Text REST API
+        const sttUrl = `https://speech.googleapis.com/v1/speech:recognize?key=${GOOGLE_TTS_KEY}`;
+        const sttBody = {
+            config: {
+                encoding: "LINEAR16",
+                sampleRateHertz: 16000,
+                languageCode: "cmn-Hans-CN",
+                enableWordTimeOffsets: true
+            },
+            audio: { content: audioBase64 }
+        };
+
+        const sttResponse = await fetch(sttUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sttBody)
+        });
+        
+        if (!sttResponse.ok) {
+            const errText = await sttResponse.text();
+            throw new Error(`Google STT API Error: ${errText}`);
+        }
+        
+        const sttData = await sttResponse.json();
+        
+        let transcript = '';
+        let durationSec = 0;
+        
+        if (sttData.results) {
+            for (const result of sttData.results) {
+                if (result.alternatives && result.alternatives[0]) {
+                    transcript += result.alternatives[0].transcript;
+                    const words = result.alternatives[0].words || [];
+                    if (words.length > 0) {
+                        const lastWord = words[words.length - 1];
+                        const endNum = parseFloat((lastWord.endTime || "0s").replace('s', ''));
+                        durationSec = Math.max(durationSec, endNum);
+                    }
+                }
+            }
+        }
+        
+        if (!transcript) {
+            return res.json({ error: "No clear speech detected. Please try recording again." });
+        }
+        
+        durationSec = Math.max(durationSec, 1);
+        const charsPerMin = Math.round((transcript.length / durationSec) * 60);
+
+        // 2. LLM Grading via Azure OpenAI
+        const prompt = `You are a PSC (Putonghua Proficiency Test) examiner evaluating the Free Talk (命题说话) section.
+The student chose the topic: "${topic || 'Unknown'}".
+They spoke the following transcript:
+"${transcript}"
+
+Evaluate their response strictly for:
+1. Vocabulary & Grammar: Is it standard Mandarin without strong dialect phrasing?
+2. Relevance: Did they stay on topic?
+3. Fluency: They spoke at approx ${charsPerMin} characters per minute.
+
+Return ONLY a valid JSON object with NO markdown formatting, strictly following this structure:
+{
+  "totalScore": 85,
+  "vocabularyScore": 90,
+  "grammarScore": 85,
+  "relevanceScore": 80,
+  "fluencyScore": 85,
+  "feedback": "Overall good, but watch out for regional vocabulary...",
+  "transcript": "..."
+}`;
+
+        const llmMessages = [{ role: 'system', content: prompt }];
+        const rawLlm = await callAzureOpenAI(llmMessages, 500);
+        const cleaned = rawLlm.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+        const llmData = JSON.parse(cleaned);
+
+        // Inject the transcript and duration back
+        llmData.transcript = transcript;
+        llmData.duration = durationSec;
+
+        res.json(llmData);
+    } catch (e) {
+        console.error('Free talk grading error:', e);
+        res.status(500).json({ error: e.message || 'Scoring failed' });
+    }
 });
 
 // ─── ISE Audio Proxy (unchanged) ─────────────────────────────────────────
