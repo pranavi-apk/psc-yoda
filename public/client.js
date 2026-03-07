@@ -587,9 +587,17 @@ async function startRecording() {
 
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        await audioContext.resume();
         const sampleRate = audioContext.sampleRate;
-        input     = audioContext.createMediaStreamSource(stream);
-        processor = audioContext.createScriptProcessor(4096, 1, 1);
+        input = audioContext.createMediaStreamSource(stream);
+
+        try {
+            await audioContext.audioWorklet.addModule('/audio-processor.js');
+        } catch (e) {
+            console.error("Failed to load audio worklet", e);
+        }
+
+        processor = new AudioWorkletNode(audioContext, 'audio-recorder-worklet');
         input.connect(processor);
         processor.connect(audioContext.destination);
 
@@ -602,9 +610,9 @@ async function startRecording() {
             text: STATE.currentText || '今天天气很好。'
         });
 
-        processor.onaudioprocess = (e) => {
+        processor.port.onmessage = (e) => {
             if (!isRecording) return;
-            const inputData = e.inputBuffer.getChannelData(0);
+            const inputData = e.data;
             STATE.recordingBuffer.push(new Float32Array(inputData));
             const down = downsampleBuffer(inputData, sampleRate, 16000);
             socket.emit('audio-data', floatTo16BitPCM(down));
