@@ -1419,20 +1419,50 @@ body::after {
     #mock-exam-list { grid-template-columns: repeat(2, 1fr) !important; }
     .metrics        { grid-template-columns: repeat(2, 1fr); }
     .result-area    { padding: 1rem; }
-    .hero-title     { font-size: clamp(2rem, 4vw, 3rem); }
-    .nav            { padding: 0.75rem 1.5rem; }
+    .hero-title     { font-size: clamp(2rem, 3.5vw, 3rem); }
 }
 
 /* Mobile (≤768px) */
 @media (max-width: 768px) {
+    .navbar {
+        padding: 0.75rem 0.75rem;
+        display: block;
+        text-align: center;
+    }
+    .logo {
+        margin-bottom: 0.75rem;
+        display: inline-block;
+    }
+    .nav-menu {
+        overflow-x: auto;
+        width: 100%;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+        gap: 0;
+        padding: 2px;
+        white-space: nowrap;
+        scrollbar-width: none;
+    }
+    .nav-menu::-webkit-scrollbar { display: none; }
+    
+    .nav-menu a {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
     #onboarding.screen.active {
         flex-direction: column-reverse;
         gap: 2rem;
-        padding-top: 8.5rem;
+        padding-top: 10rem;
     }
-    .mascot-wrapper { width: 200px; height: 200px; }
-    .mascot-img     { width: 170px; height: 170px; }
-    .mascot-bubble  { right: -20px; top: 0; font-size: 0.72rem; }
+    .mascot-wrapper { width: 180px; height: 180px; }
+    .mascot-img     { width: 150px; height: 150px; }
+    .mascot-bubble  { right: -10px; top: -10px; font-size: 0.68rem; padding: 0.5rem 0.75rem; }
+    
+    .screen { padding-top: 9.5rem; }
+    .dashboard-header h2 { font-size: 1.5rem; }
+    .dashboard-header p { font-size: 0.85rem; }
+    
     .bento-grid     { grid-template-columns: 1fr 1fr; }
     #dashboard-grid { grid-template-columns: repeat(2, 1fr); }
     #dashboard-grid .dash-card { grid-column: auto !important; }
@@ -1441,12 +1471,22 @@ body::after {
 }
 
 @media (max-width: 500px) {
+    .navbar { padding: 0.5rem; }
+    .nav-menu a { padding: 5px 10px; font-size: 0.75rem; }
+    
+    .screen { padding-top: 10.5rem; }
+    
     .bento-grid     { grid-template-columns: 1fr; }
     #dashboard-grid { grid-template-columns: 1fr; }
     #dashboard-grid .dash-card { grid-column: auto !important; }
     .bento-card.wide { grid-column: span 1; }
     .metrics-grid   { grid-template-columns: repeat(2,1fr); }
     #mock-exam-list { grid-template-columns: 1fr !important; }
+    
+    .dashboard-header { margin-bottom: 2rem; }
+    .dashboard-header h2 { font-size: 1.4rem; }
+    
+    .back-btn { padding: 6px 12px; font-size: 0.75rem; }
 }
 
 /* ── Yoda Reaction Image in Result Card ──────────────────── */
