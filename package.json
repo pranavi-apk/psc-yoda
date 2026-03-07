@@ -4,7 +4,6 @@
   "description": "",
   "main": "iat-ws-node.js",
   "dependencies": {
-    "better-sqlite3": "^12.6.2",
     "crypto-js": "^3.1.9-1",
     "express": "^5.2.1",
     "pinyin-pro": "^3.28.0",
