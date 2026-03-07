@@ -169,7 +169,7 @@ function switchScreen(name) {
     }
 
     // Toggle nav buttons visibility (only hide on onboarding)
-    const navBtns = ['nav-mock-btn', 'nav-flashcard-btn', 'nav-mastery-btn'];
+    const navBtns = ['nav-mock-btn', 'nav-flashcard-btn', 'nav-mastery-btn', 'nav-report-btn'];
     navBtns.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) {
