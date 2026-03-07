@@ -963,29 +963,32 @@ function renderResult(xmlStr) {
             }
         }
         console.log('[FC Collect] errorPayload:', JSON.stringify(errorPayload));
-        if (errorPayload.length > 0) {
-            if (pct < 50) {
-                fetch('/api/flashcards/collect', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ errors: errorPayload })
-                }).catch(e => console.warn('Flashcard auto-collect failed:', e));
-            }
+        if (errorPayload.length > 0 && pct < 50) {
+            fetch('/api/flashcards/collect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ errors: errorPayload })
+            }).catch(e => console.warn('Flashcard auto-collect failed:', e));
+        }
+    }
 
-            // Append manual flashcard buttons after the main diagnostic UI renders
-            setTimeout(() => {
-                const diagEl = document.getElementById('mentor-diagnostic');
-                if (diagEl) {
+    // Append manual flashcard buttons after the main diagnostic UI renders
+    if (isMandarin && STATE.currentChars && STATE.currentChars.length > 0) {
+        setTimeout(() => {
+            const diagEl = document.getElementById('mentor-diagnostic');
+            if (diagEl) {
+                const practiceChars = STATE.currentChars.filter(c => c.p);
+                if (practiceChars.length > 0) {
                     const manualAddHtml = `<div class="manual-fc-section" style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);">
-                        <p style="font-size:0.9rem; margin-bottom:10px; opacity:0.8; color:var(--text-color);">Manually add mistakes to Flashcards:</p>
+                        <p style="font-size:0.9rem; margin-bottom:10px; opacity:0.8; color:var(--text-color);">Manually add to Flashcards:</p>
                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            ${errorPayload.map(e => `<button class="manual-fc-btn" style="background:rgba(255,255,255,0.1); border:none; padding:6px 12px; border-radius:12px; color:var(--text-color); cursor:pointer; list-style:none;" onclick="manualAddFlashcard('${e.character}', '${e.error_type}', '${e.pinyin}', this)">+ ${e.character}</button>`).join('')}
+                            ${practiceChars.map(c => `<button class="manual-fc-btn" style="background:rgba(255,255,255,0.1); border:none; padding:6px 12px; border-radius:12px; color:var(--text-color); cursor:pointer; list-style:none;" onclick="manualAddFlashcard('${c.c}', 'manual', '${c.p}', this)">+ ${c.c}</button>`).join('')}
                         </div>
                     </div>`;
                     diagEl.insertAdjacentHTML('beforeend', manualAddHtml);
                 }
-            }, 850);
-        }
+            }
+        }, 850);
     }
 
     // Tip / Yoda modal
