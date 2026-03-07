@@ -32,7 +32,7 @@
         <!-- Left: text + grade picker -->
         <div class="onboarding-card">
             <p class="hero-eyebrow">普通话水平测试 (PSC)</p>
-            <h1 id="welcome-title" class="hero-title">Master PSC<br>with Yoda 優答</h1>
+            <h1 id="welcome-title" class="hero-title">Master <a href="javascript:void(0)" onclick="goToAboutPSC()" class="underlined-psc"></a>PSC</a><br>with Yoda 优答</h1>
             <p id="welcome-subtitle" class="hero-subtitle">Your AI-powered coach for the Putonghua Proficiency Test. Practice, listen, and improve every day.</p>
             <p style="margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 700; color: var(--gold); font-size: 1.1rem; letter-spacing: 0.5px;">Select the level you want to achieve:</p>
 
@@ -620,6 +620,83 @@
     </section>
 
     <!-- PLAYGROUND DASHBOARD -->
+    <section id="about-psc" class="screen">
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToDashboard()">← Back</button>
+            <h2>About PSC & Yoda</h2>
+            <p>Everything you need to know about the exam and how to use this platform.</p>
+        </div>
+
+        <div class="doc-container">
+            <!-- PSC EXAM BREAKDOWN -->
+            <div class="doc-card">
+                <h3>📖 The PSC Exam Structure</h3>
+                <div class="doc-grid">
+                    <div class="exam-part">
+                        <span class="part-num">01</span>
+                        <h4>Single Syllables</h4>
+                        <p>Read 100 characters. Focus on precision, tone, and initials/finals.</p>
+                    </div>
+                    <div class="exam-part">
+                        <span class="part-num">02</span>
+                        <h4>Multi-syllable Words</h4>
+                        <p>50 words. Tests your tone changes (Sandhi) and natural flow.</p>
+                    </div>
+                    <div class="exam-part">
+                        <span class="part-num">03</span>
+                        <h4>Word Choice & Grammar</h4>
+                        <p>Correct use of suffixes, measure words, and common phrases.</p>
+                    </div>
+                    <div class="exam-part">
+                        <span class="part-num">04</span>
+                        <h4>Reading Aloud</h4>
+                        <p>A 400-word passage. Evaluates fluency, rhythm, and accuracy.</p>
+                    </div>
+                    <div class="exam-part">
+                        <span class="part-num">05</span>
+                        <h4>Free Speaking</h4>
+                        <p>3-minute monologue on a given topic. Demonstrates spontaneous mastery.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HOW TO USE YODA -->
+            <div class="doc-card">
+                <h3>🛠️ How to Use Yoda 优答</h3>
+                <div class="guide-steps">
+                    <div class="step">
+                        <div class="step-icon">🎯</div>
+                        <div class="step-info">
+                            <h5>1. Set Your Goal</h5>
+                            <p>Select your target grade (Level 1A to 3B) on the home screen. Yoda will tailor the coaching to that standard.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">🎙️</div>
+                        <div class="step-info">
+                            <h5>2. Practice Daily</h5>
+                            <p>Pick a theme in "Practice Mode". Record your voice and click 'Generate Report' for instant AI feedback.</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">📉</div>
+                        <div class="step-info">
+                            <h5>3. Track Progress</h5>
+                            <p>Use the **Mastery Dashboard** to see your learning curve and check your "Cantonese Interference Patterns".</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">📝</div>
+                        <div class="step-info">
+                            <h5>4. Mock Exams</h5>
+                            <p>When you feel ready, take a full Mock Exam (50-60 items) to simulate the real test environment.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section id="playground-dashboard" class="screen">
         <div class="dashboard-header">
             <button class="back-btn" onclick="goToDashboard()">← Back</button>

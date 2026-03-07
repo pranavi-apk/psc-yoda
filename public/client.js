@@ -56,7 +56,8 @@ const screens = {
     'playground-dashboard': document.getElementById('playground-dashboard'),
     'match-game':       document.getElementById('match-game'),
     'tone-game':        document.getElementById('tone-game'),
-    'minimal-pairs-game': document.getElementById('minimal-pairs-game')
+    'minimal-pairs-game': document.getElementById('minimal-pairs-game'),
+    'aboutPsc':         document.getElementById('about-psc')
 };
 
 
@@ -155,6 +156,12 @@ recordBtn.addEventListener('click', async () => {
 
 // ─── Navigation ───────────────────────────────────────────────────────────
 
+window.exportToPDF = () => {
+    // Add a helper class to body if needed, otherwise just print
+    // The @media print CSS in style.css handles the layout
+    window.print();
+};
+
 function switchScreen(name) {
     Object.values(screens).forEach(el => el.classList.remove('active'));
     if (screens[name]) screens[name].classList.add('active');
@@ -175,8 +182,22 @@ function switchScreen(name) {
     navBtns.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) {
-            if (name === 'onboarding') btn.classList.add('hidden');
-            else btn.classList.remove('hidden');
+            if (name === 'onboarding') {
+                btn.classList.add('hidden');
+            } else {
+                btn.classList.remove('hidden');
+                
+                // Dynamic Toggle for Mock Exam / Practice Mode
+                if (id === 'nav-mock-btn') {
+                    if (name === 'mockExamDashboard') {
+                        btn.innerHTML = '📝 Practice Mode';
+                        btn.onclick = () => goToDashboard();
+                    } else {
+                        btn.innerHTML = '📝 Mock Exam Mode';
+                        btn.onclick = () => goToMockExamDashboard();
+                    }
+                }
+            }
         }
     });
 
@@ -199,6 +220,11 @@ window.goToDashboard = () => {
 window.goToSection3Parts = () => {
     stopRecording();
     switchScreen('section3Parts');
+};
+
+window.goToAboutPSC = () => {
+    stopRecording();
+    switchScreen('aboutPsc');
 };
 
 // ─── Mock Exam Scoring Persistence ──────────────────────────────────────
@@ -309,6 +335,7 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
         content.innerHTML = `
             <div style="margin-bottom:20px; text-align:center;">
                 <h2 style="font-size:1.6rem; color:#1a1a1a; margin-bottom:5px;">PSC Mock Exam Report Card</h2>
+                <button class="export-btn" onclick="exportToPDF()" style="margin: 0 auto 10px auto;">📄 Export PDF</button>
                 <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
                     <div style="font-size:3.5rem; font-weight:900; color:var(--primary-color); line-height:1;">${score}<span style="font-size:1.2rem; opacity:0.4; font-weight:400;"> / 100</span></div>
                     <div class="level-badge ${pscLevel.class}">${pscLevel.name}</div>

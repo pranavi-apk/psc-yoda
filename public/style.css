@@ -2929,3 +2929,212 @@ body::after {
 .lvl-3b { background: #222; color: #999; }
 .lvl-fail { background: #8e0000; color: #fff; }
 
+/* ─── About PSC / Documentation ─────────────────────────── */
+.underlined-psc {
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 2px dashed rgba(212, 175, 55, 0.4);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.underlined-psc:hover {
+    border-bottom-style: solid;
+    border-bottom-color: var(--gold);
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+}
+
+.doc-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.doc-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+}
+
+.doc-card h3 {
+    font-size: 1.8rem;
+    color: var(--gold);
+    margin-bottom: 2rem;
+    font-family: var(--font-cn);
+}
+
+.doc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.exam-part {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: transform 0.3s;
+}
+
+.exam-part:hover {
+    transform: translateY(-5px);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+.part-num {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    font-weight: 900;
+    opacity: 0.1;
+    color: #fff;
+}
+
+.exam-part h4 {
+    color: #fff;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+}
+
+.exam-part p {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    line-height: 1.5;
+}
+
+.guide-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.step-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    background: rgba(56, 217, 200, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.step-info h5 {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.step-info p {
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .doc-container { padding: 1rem; }
+    .doc-card { padding: 1.5rem; }
+    .step { flex-direction: column; text-align: center; }
+}
+
+/* ════════════════════════════════════════════════════════
+   PRINT & EXPORT STYLES
+   ════════════════════════════════════════════════════════ */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Only show the active report content or the visible modal content */
+    #report.active, 
+    #report.active #report-content,
+    #report.active #report-content *,
+    .yoda-modal,
+    .yoda-modal .modal-content,
+    .yoda-modal .modal-content *,
+    .rich-report-container,
+    .rich-report-container * {
+        visibility: visible;
+    }
+
+    #report.active, .yoda-modal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        background: white !important;
+        visibility: visible;
+    }
+
+    .report-header, .navbar, .back-btn, .card-btn, .close-modal, .export-btn, .yoda-img, .logo {
+        display: none !important;
+    }
+
+    .report-content, .modal-content {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Force background colors and gradients to show in PDF */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* Fix table borders and spacing for print */
+    table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        margin-top: 20px !important;
+    }
+    th, td {
+        border: 1px solid #ddd !important;
+        padding: 8px !important;
+    }
+}
+
+.export-btn {
+    background: rgba(56, 217, 200, 0.1);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    margin-bottom: 15px;
+}
+
+.export-btn:hover {
+    background: var(--primary-color);
+    color: #000;
+}
+
