@@ -20,6 +20,8 @@
             </a>
         </div>
         <div class="nav-actions" style="display: flex; gap: 10px;">
+            <button id="nav-flashcard-btn" class="special-btn flashcard-nav-btn hidden" onclick="goToFlashcardList()">🃏 Flashcards</button>
+            <button id="nav-mastery-btn" class="special-btn mastery-nav-btn hidden" onclick="goToMasteryDashboard()">📊 Mastery</button>
             <button id="nav-report-btn" class="special-btn" onclick="completeSession()">📊 Report Card</button>
             <button id="nav-mock-btn" class="special-btn hidden" onclick="goToMockExamDashboard()">📝 Mock Exam Mode</button>
         </div>
@@ -126,12 +128,33 @@
                 <p>3-min free talk on a given topic.</p>
                 <div class="psc-badge">Section 5</div>
             </div>
+            <!-- Flashcard Dictionary (wide gold card) -->
+            <div class="bento-card wide flashcard-bento" onclick="goToFlashcardList()">
+                <div class="card-content">
+                    <div class="card-icon">复</div>
+                    <div class="text-content">
+                        <h3>复习词库</h3>
+                        <p>AI-powered spaced repetition. View all your error cards, track progress &amp; start targeted review.</p>
+                    </div>
+                </div>
+                <!-- Mini mastery snippet on the card -->
+                <div class="mini-mastery-stats" id="dashboard-mastery-stats">0 Mastered</div>
+            </div>
+
             <!-- Playground -->
             <div class="bento-card special" onclick="goToPlaygroundDashboard()">
                 <div class="card-icon">🎮</div>
                 <h3>Playground</h3>
                 <p>Interactive mini-games to train your ear and pronunciation.</p>
                 <div class="psc-badge">Fun</div>
+            </div>
+
+            <!-- Mastery Dashboard -->
+            <div class="bento-card mastery-bento" onclick="goToMasteryDashboard()">
+                <div class="card-icon">析</div>
+                <h3>学情分析</h3>
+                <p>Track progress, view weakness patterns &amp; AI diagnosis.</p>
+                <div class="psc-badge">Analytics</div>
             </div>
         </div>
     </section>
@@ -350,6 +373,140 @@
         </div>
         <div class="confetti"></div>
     </div>
+
+    <!-- FLASHCARD LIST (Dictionary) -->
+    <section id="flashcard-list" class="screen">
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToDashboard()">← Back</button>
+            <h2>Flashcard Dictionary</h2>
+            <div class="fc-list-actions">
+                <span id="fc-list-due-badge" class="fc-progress">0 due</span>
+                <button class="cta-btn" onclick="goToFlashcardReview()" style="padding:8px 24px; font-size:0.9rem">Start Review</button>
+            </div>
+        </div>
+        <div class="fc-list-filters">
+            <button class="fc-filter-btn active" data-filter="all" onclick="filterFCList('all')">All</button>
+            <button class="fc-filter-btn" data-filter="due" onclick="filterFCList('due')">Due Now</button>
+            <button class="fc-filter-btn" data-filter="0" onclick="filterFCList(0)">New</button>
+            <button class="fc-filter-btn" data-filter="1" onclick="filterFCList(1)">Learning</button>
+            <button class="fc-filter-btn" data-filter="2" onclick="filterFCList(2)">Reviewing</button>
+            <button class="fc-filter-btn" data-filter="3" onclick="filterFCList(3)">Familiar</button>
+            <button class="fc-filter-btn" data-filter="4" onclick="filterFCList(4)">Mastered</button>
+        </div>
+        <div id="fc-list-container" class="fc-list-container">
+            <p style="color:var(--muted); text-align:center; padding:2rem">Loading...</p>
+        </div>
+    </section>
+
+    <!-- FLASHCARD REVIEW SCREEN -->
+    <section id="flashcard-review" class="screen">
+        <div class="exercise-header">
+            <button class="back-btn" onclick="goToFlashcardList()">← List</button>
+            <h3>Flashcard Review</h3>
+            <span id="fc-progress" class="fc-progress">0/0</span>
+        </div>
+
+        <div class="fc-container">
+            <!-- Empty State -->
+            <div id="fc-empty" class="fc-empty hidden">
+                <div class="fc-empty-icon">🎉</div>
+                <h3>All caught up!</h3>
+                <p>No cards due for review right now. Practice more sections to collect new cards.</p>
+                <button class="cta-btn" onclick="goToFlashcardList()" style="max-width:300px">Back to Dictionary</button>
+            </div>
+
+            <!-- Card -->
+            <div id="fc-card-wrapper" class="fc-card-wrapper">
+                <!-- Prev button -->
+                <button id="fc-prev-btn" class="fc-nav-arrow fc-prev hidden" onclick="fcPrevCard()">‹</button>
+
+                <div id="fc-card" class="fc-card">
+                    <div class="fc-card-inner">
+                        <!-- Front: character + record (test yourself) -->
+                        <div class="fc-front">
+                            <div id="fc-box-indicator" class="fc-box-indicator box-0">New</div>
+                            <div id="fc-character" class="fc-character">字</div>
+                            <div id="fc-score-display" class="fc-score-display hidden"></div>
+                            <div class="fc-front-actions">
+                                <button class="fc-btn fc-record-btn" onclick="fcStartRecording()">🎤 Record</button>
+                                <button class="fc-btn fc-got-btn" onclick="fcSkipKnown()">I know this</button>
+                                <button class="fc-btn fc-flip-btn" onclick="flipFlashcard()">Show Answer</button>
+                            </div>
+                        </div>
+                        <!-- Back: answer reveal (flip = didn't know = demote) -->
+                        <div class="fc-back">
+                            <button class="fc-back-speaker" onclick="fcPlayTTS()">🔊</button>
+                            <div id="fc-back-char" class="fc-back-char">字</div>
+                            <div id="fc-back-pinyin" class="fc-back-pinyin">zì</div>
+                            <div class="fc-back-actions">
+                                <button class="fc-btn fc-retry-btn" onclick="fcRetryFromBack()">🎤 Test Again</button>
+                                <button class="fc-btn fc-next-btn" onclick="fcNextFromBack()">Next →</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Session Summary -->
+        <div id="fc-summary" class="fc-summary hidden">
+            <h3>Session Complete</h3>
+            <div id="fc-summary-stats" class="fc-summary-stats"></div>
+            <div class="fc-summary-actions">
+                <button class="cta-btn" onclick="goToMasteryDashboard()" style="max-width:300px">View Mastery Dashboard</button>
+                <button class="action-btn next-btn" onclick="goToFlashcardList()" style="margin-top:10px">Back to Dictionary</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- MASTERY DASHBOARD SCREEN -->
+    <section id="mastery-dashboard" class="screen">
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToDashboard()">← Back</button>
+            <h2>Mastery Dashboard</h2>
+            <button class="special-btn" onclick="goToFlashcardList()">🃏 Flashcards</button>
+        </div>
+
+        <div class="mastery-content">
+            <!-- Top row: Ring + Box Distribution -->
+            <div class="mastery-top-row">
+                <div class="mastery-card mastery-ring-card">
+                    <h4>Overall Mastery</h4>
+                    <div id="mastery-ring" class="mastery-ring"></div>
+                    <div id="mastery-total" class="mastery-total-label">0 cards total</div>
+                </div>
+                <div class="mastery-card mastery-bars-card">
+                    <h4>Leitner Box Distribution</h4>
+                    <div id="mastery-bars" class="mastery-bars"></div>
+                </div>
+                <div class="mastery-card mastery-donut-card">
+                    <h4>Error Type Breakdown</h4>
+                    <div id="mastery-donut" class="mastery-donut"></div>
+                </div>
+            </div>
+
+            <!-- Sparkline -->
+            <div class="mastery-card mastery-sparkline-card">
+                <h4>Recent Review Scores</h4>
+                <div id="mastery-sparkline" class="mastery-sparkline"></div>
+            </div>
+
+            <!-- Cantonese Interference Heatmap -->
+            <div class="mastery-card mastery-heatmap-card">
+                <h4>Cantonese Interference Patterns</h4>
+                <div id="mastery-heatmap" class="mastery-heatmap"></div>
+                <button class="action-btn complete-btn" onclick="runDiagnosis()" style="margin-top:1rem; align-self:center;">Refresh AI Diagnosis</button>
+            </div>
+
+            <!-- Smart Practice CTA -->
+            <div class="mastery-card mastery-smart-card">
+                <h4>Smart Practice</h4>
+                <p>Generate a custom sentence targeting your weakest characters.</p>
+                <button id="smart-practice-btn" class="cta-btn" onclick="startSmartPractice()" style="max-width:400px">Practice Your Weakest Patterns</button>
+                <div id="smart-practice-result" class="smart-practice-result hidden"></div>
+            </div>
+        </div>
+    </section>
 
     <!-- MOCK EXAM DASHBOARD -->
     <section id="mock-exam-dashboard" class="screen">
