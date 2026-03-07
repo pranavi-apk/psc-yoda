@@ -269,44 +269,43 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
             </div>
             <button class="card-btn" onclick="${closeCall}" style="margin-top:25px; width:100%; background:#1a1a1a; color:white; border:none; padding:18px; border-radius:15px; font-weight:700; font-size:1.1rem; cursor:pointer;">Continue</button>
         `;
-        return;
-    }
+    } else {
+        // Fallback basic view if GenAI report isn't available
+        let rowsHtml = '';
+        const sectionNames = ["Section 1: Single Characters", "Section 2: Multi-syllable Words", "Section 3: Selective Judgment", "Section 4: Reading Passage", "Section 5: Free Talk"];
+        
+        data.lastResults.forEach((res, i) => {
+            if (!res) return;
+            const name = sectionNames[i] || `Section ${i+1}`;
+            rowsHtml += `
+                <div style="padding:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:600; font-size:0.95rem; color:#1a1a1a;">${name}</div>
+                        <div style="font-size:0.8rem; opacity:0.6;">Weight: ${res.sectionId === 'section_3' ? 10 : (res.sectionId === 'section_4' || res.sectionId === 'section_5' ? 30 : (res.sectionId === 'section_1' ? 10 : 20))} pts</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.1rem; font-weight:700; color:var(--primary-color);">${res.totalScore.toFixed(1)}</div>
+                        <div style="font-size:0.75rem; color:#27ae60;">${Math.round(res.percent)}% Accuracy</div>
+                    </div>
+                </div>
+            `;
+        });
 
-    // Fallback basic view if GenAI report isn't available
-    let rowsHtml = '';
-    const sectionNames = ["Section 1: Single Characters", "Section 2: Multi-syllable Words", "Section 3: Selective Judgment", "Section 4: Reading Passage", "Section 5: Free Talk"];
-    
-    data.lastResults.forEach((res, i) => {
-        if (!res) return;
-        const name = sectionNames[i] || `Section ${i+1}`;
-        rowsHtml += `
-            <div style="padding:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <div style="font-weight:600; font-size:0.95rem; color:#1a1a1a;">${name}</div>
-                    <div style="font-size:0.8rem; opacity:0.6;">Weight: ${res.sectionId === 'section_3' ? 10 : (res.sectionId === 'section_4' || res.sectionId === 'section_5' ? 30 : (res.sectionId === 'section_1' ? 10 : 20))} pts</div>
+        content.innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <h2 style="font-size:1.5rem; margin-bottom:5px; color:#1a1a1a;">${isFromExam ? 'Exam Complete! 🎉' : 'Mock Exam Report'}</h2>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                    <div style="font-size:3rem; font-weight:800; color:var(--primary-color); line-height:1;">${score}<span style="font-size:1rem; opacity:0.5; font-weight:400;"> / 100</span></div>
+                    <div class="level-badge ${pscLevel.class}">${pscLevel.name}</div>
                 </div>
-                <div style="text-align:right;">
-                    <div style="font-size:1.1rem; font-weight:700; color:var(--primary-color);">${res.totalScore.toFixed(1)}</div>
-                    <div style="font-size:0.75rem; color:#27ae60;">${Math.round(res.percent)}% Accuracy</div>
-                </div>
+                <p style="opacity:0.6; font-size:0.85rem; margin-top:10px;">Last attempt on ${new Date(data.date).toLocaleDateString()}</p>
             </div>
+            <div style="background:#f9f9f9; border-radius:12px; overflow:hidden; border:1px solid #eee;">
+                ${rowsHtml}
+            </div>
+            <button class="card-btn" onclick="${closeCall}" style="margin-top:20px; width:100%; background:#1a1a1a; color:white; border:none; padding:15px; border-radius:12px; font-weight:700; font-size:1rem;">Continue</button>
         `;
-    });
-
-    content.innerHTML = `
-        <div style="text-align:center; margin-bottom:20px;">
-            <h2 style="font-size:1.5rem; margin-bottom:5px; color:#1a1a1a;">${isFromExam ? 'Exam Complete! 🎉' : 'Mock Exam Report'}</h2>
-            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
-                <div style="font-size:3rem; font-weight:800; color:var(--primary-color); line-height:1;">${score}<span style="font-size:1rem; opacity:0.5; font-weight:400;"> / 100</span></div>
-                <div class="level-badge ${pscLevel.class}">${pscLevel.name}</div>
-            </div>
-            <p style="opacity:0.6; font-size:0.85rem; margin-top:10px;">Last attempt on ${new Date(data.date).toLocaleDateString()}</p>
-        </div>
-        <div style="background:#f9f9f9; border-radius:12px; overflow:hidden; border:1px solid #eee;">
-            ${rowsHtml}
-        </div>
-        <button class="card-btn" onclick="${closeCall}" style="margin-top:20px; width:100%; background:#1a1a1a; color:white; border:none; padding:15px; border-radius:12px; font-weight:700; font-size:1rem;">Continue</button>
-    `;
+    }
     
     modal.classList.add('show');
 };
