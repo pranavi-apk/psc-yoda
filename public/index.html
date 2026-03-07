@@ -86,50 +86,68 @@
 
         <div class="bento-grid" id="dashboard-grid">
             <!-- 1. 单音节字词 -->
-            <div class="bento-card" onclick="startExercise('dan_yin_jie')">
-                <div class="card-icon">字</div>
+            <div class="bento-card dash-card" data-section="1" onclick="startExercise('dan_yin_jie')">
+                <div class="dash-card-top">
+                    <div class="card-icon">字</div>
+                    <span class="section-num">01</span>
+                </div>
                 <h3>单音节字词</h3>
                 <p>Single-syllable characters. Master initials &amp; finals.</p>
                 <div class="psc-badge">Section 1</div>
             </div>
 
             <!-- 2. 多音节词语 -->
-            <div class="bento-card" onclick="startExercise('duo_yin_jie')">
-                <div class="card-icon">词</div>
+            <div class="bento-card dash-card" data-section="2" onclick="startExercise('duo_yin_jie')">
+                <div class="dash-card-top">
+                    <div class="card-icon">词</div>
+                    <span class="section-num">02</span>
+                </div>
                 <h3>多音节词语</h3>
-                <p>Multi-syllable words. Master tone sandhi.</p>
+                <p>Multi-syllable words. Master tone sandhi &amp; rhythm.</p>
                 <div class="psc-badge">Section 2</div>
             </div>
 
             <!-- 3. 选择判断 -->
-            <div class="bento-card" onclick="goToSection3Parts()">
-                <div class="card-icon">选</div>
+            <div class="bento-card dash-card" data-section="3" onclick="goToSection3Parts()">
+                <div class="dash-card-top">
+                    <div class="card-icon">选</div>
+                    <span class="section-num">03</span>
+                </div>
                 <h3>选择判断</h3>
                 <p>Identify &amp; correct misused Mandarin words.</p>
                 <div class="psc-badge">Section 3</div>
             </div>
 
             <!-- 4. 朗读短文 -->
-            <div class="bento-card" onclick="startExercise('lang_du')">
-                <div class="card-icon">读</div>
+            <div class="bento-card dash-card" data-section="4" onclick="startExercise('lang_du')">
+                <div class="dash-card-top">
+                    <div class="card-icon">读</div>
+                    <span class="section-num">04</span>
+                </div>
                 <h3>朗读短文</h3>
                 <p>Read a passage aloud. Scored on fluency, tone &amp; accuracy.</p>
                 <div class="psc-badge">Section 4</div>
             </div>
 
             <!-- 5. 命题说话 -->
-            <div class="bento-card" onclick="startExercise('ming_ti')">
-                <div class="card-icon">说</div>
+            <div class="bento-card dash-card" data-section="5" onclick="startExercise('ming_ti')">
+                <div class="dash-card-top">
+                    <div class="card-icon">说</div>
+                    <span class="section-num">05</span>
+                </div>
                 <h3>命题说话</h3>
-                <p>3-min free talk on a given topic.</p>
+                <p>3-min free talk on a given topic. AI-graded.</p>
                 <div class="psc-badge">Section 5</div>
             </div>
 
             <!-- Playground -->
-            <div class="bento-card special" onclick="goToPlaygroundDashboard()">
-                <div class="card-icon">🎮</div>
+            <div class="bento-card dash-card special" data-section="play" onclick="goToPlaygroundDashboard()">
+                <div class="dash-card-top">
+                    <div class="card-icon">🎮</div>
+                    <span class="section-num" style="opacity:0.4">✦</span>
+                </div>
                 <h3>Playground</h3>
-                <p>Interactive mini-games to train your ear and pronunciation.</p>
+                <p>Mini-games to sharpen your ear and pronunciation.</p>
                 <div class="psc-badge">Fun</div>
             </div>
         </div>

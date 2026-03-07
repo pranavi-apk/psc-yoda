@@ -465,6 +465,67 @@ body::after {
     text-shadow: 0 0 20px rgba(212,175,55,0.5);
 }
 
+/* ─── Dashboard Card Upgrades ────────────────────────────── */
+.dash-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.section-num {
+    font-size: 2rem;
+    font-weight: 900;
+    opacity: 0.07;
+    line-height: 1;
+    letter-spacing: -2px;
+    color: #fff;
+    user-select: none;
+}
+
+.dash-card .card-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    background: rgba(212,175,55,0.1);
+    border: 1px solid rgba(212,175,55,0.2);
+    transition: transform 0.3s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s;
+}
+
+.dash-card:hover .card-icon {
+    transform: scale(1.1) rotate(-5deg);
+    box-shadow: 0 0 20px var(--card-glow, rgba(212,175,55,0.4));
+}
+
+/* Per-section color accents (top left glowing border + icon tint) */
+.dash-card[data-section="1"] { --card-glow: rgba(99, 179, 237, 0.5); }
+.dash-card[data-section="1"]::before { background: linear-gradient(90deg, transparent, #63b3ed, transparent); opacity: 1; }
+.dash-card[data-section="1"] .card-icon { background: rgba(99,179,237,0.12); border-color: rgba(99,179,237,0.3); color: #63b3ed; text-shadow: 0 0 15px rgba(99,179,237,0.6); }
+
+.dash-card[data-section="2"] { --card-glow: rgba(154, 117, 234, 0.5); }
+.dash-card[data-section="2"]::before { background: linear-gradient(90deg, transparent, #9a75ea, transparent); opacity: 1; }
+.dash-card[data-section="2"] .card-icon { background: rgba(154,117,234,0.12); border-color: rgba(154,117,234,0.3); color: #9a75ea; text-shadow: 0 0 15px rgba(154,117,234,0.6); }
+
+.dash-card[data-section="3"] { --card-glow: rgba(104, 211, 145, 0.5); }
+.dash-card[data-section="3"]::before { background: linear-gradient(90deg, transparent, #68d391, transparent); opacity: 1; }
+.dash-card[data-section="3"] .card-icon { background: rgba(104,211,145,0.12); border-color: rgba(104,211,145,0.3); color: #68d391; text-shadow: 0 0 15px rgba(104,211,145,0.6); }
+
+.dash-card[data-section="4"] { --card-glow: rgba(250, 173, 20, 0.5); }
+.dash-card[data-section="4"]::before { background: linear-gradient(90deg, transparent, #faad14, transparent); opacity: 1; }
+.dash-card[data-section="4"] .card-icon { background: rgba(250,173,20,0.12); border-color: rgba(250,173,20,0.3); color: #faad14; text-shadow: 0 0 15px rgba(250,173,20,0.6); }
+
+.dash-card[data-section="5"] { --card-glow: rgba(252, 129, 129, 0.5); }
+.dash-card[data-section="5"]::before { background: linear-gradient(90deg, transparent, #fc8181, transparent); opacity: 1; }
+.dash-card[data-section="5"] .card-icon { background: rgba(252,129,129,0.12); border-color: rgba(252,129,129,0.3); color: #fc8181; text-shadow: 0 0 15px rgba(252,129,129,0.6); }
+
+.dash-card[data-section="play"] { --card-glow: rgba(237, 100, 166, 0.5); }
+.dash-card[data-section="play"]::before { background: linear-gradient(90deg, transparent, #ed64a6, transparent); opacity: 1; }
+.dash-card[data-section="play"] .card-icon { background: rgba(237,100,166,0.12); border-color: rgba(237,100,166,0.3); text-shadow: none; }
+
 .bento-card h3 {
     font-size: 1.05rem;
     font-weight: 700;
