@@ -234,7 +234,7 @@ function saveMockScore(examId, scoreData) {
 
 loadMockScores(); // Initial load
 
-window.showMockScoreDetails = (examId) => {
+window.showMockScoreDetails = (examId, isFromExam = false) => {
     const data = STATE.mockScores[examId];
     if (!data) return;
 
@@ -250,7 +250,7 @@ window.showMockScoreDetails = (examId) => {
         rowsHtml += `
             <div style="padding:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                    <div style="font-weight:600; font-size:0.95rem;">${name}</div>
+                    <div style="font-weight:600; font-size:0.95rem; color:#1a1a1a;">${name}</div>
                     <div style="font-size:0.8rem; opacity:0.6;">Weight: ${res.sectionId === 'section_3' ? 10 : (res.sectionId === 'section_4' || res.sectionId === 'section_5' ? 30 : (res.sectionId === 'section_1' ? 10 : 20))} pts</div>
                 </div>
                 <div style="text-align:right;">
@@ -261,16 +261,18 @@ window.showMockScoreDetails = (examId) => {
         `;
     });
 
+    const closeCall = isFromExam ? 'closeModal(); goToMockExamDashboard();' : 'closeModal();';
+
     content.innerHTML = `
         <div style="text-align:center; margin-bottom:20px;">
-            <h2 style="font-size:1.5rem; margin-bottom:5px;">Exam Results</h2>
-            <div style="font-size:2.5rem; font-weight:800; color:var(--primary-color);">${Math.round(data.bestScore)}<span style="font-size:1rem; opacity:0.5; font-weight:400;"> / 100</span></div>
-            <p style="opacity:0.6; font-size:0.9rem;">Best attempt on ${new Date(data.date).toLocaleDateString()}</p>
+            <h2 style="font-size:1.5rem; margin-bottom:5px; color:#1a1a1a;">${isFromExam ? 'Exam Complete! 🎉' : 'Best Results'}</h2>
+            <div style="font-size:3rem; font-weight:800; color:var(--primary-color); line-height:1;">${Math.round(data.bestScore)}<span style="font-size:1rem; opacity:0.5; font-weight:400;"> / 100</span></div>
+            <p style="opacity:0.6; font-size:0.85rem; margin-top:10px;">Attempt on ${new Date(data.date).toLocaleDateString()}</p>
         </div>
         <div style="background:#f9f9f9; border-radius:12px; overflow:hidden; border:1px solid #eee;">
             ${rowsHtml}
         </div>
-        <button class="action-btn" onclick="closeModal()" style="margin-top:20px; width:100%;">Close</button>
+        <button class="card-btn" onclick="${closeCall}" style="margin-top:20px; width:100%; background:var(--primary-color); color:white; border:none; padding:12px; border-radius:12px; font-weight:700;">Close Results</button>
     `;
     
     modal.classList.add('show');
@@ -1363,6 +1365,7 @@ window.startMockExam = async (examId) => {
         const examData = await res.json();
         
         STATE.mockExam.data = examData;
+        STATE.mockExam.id = examId; // Track the filename-based ID for scoring
         STATE.mockExam.currentPartIndex = 0;
         STATE.mockExam.sectionResults = [null, null, null, null, null];
         STATE.activeSection = 'mock'; 
@@ -1506,13 +1509,13 @@ window.nextExamPart = () => {
         
         // Final score calculation
         const total = STATE.mockExam.sectionResults.reduce((sum, res) => sum + (res ? res.totalScore : 0), 0);
-        saveMockScore(STATE.mockExam.data.id, {
+        saveMockScore(STATE.mockExam.id, {
             totalScore: total,
             sectionResults: [...STATE.mockExam.sectionResults]
         });
 
-        alert(`Exam Complete! Total Score: ${Math.round(total)}/100`);
-        goToMockExamDashboard();
+        // Show detailed score modal immediately instead of an alert
+        showMockScoreDetails(STATE.mockExam.id, true);
     }
 };
 
