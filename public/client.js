@@ -238,7 +238,7 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
     const data = STATE.mockScores[examId];
     if (!data) return;
 
-    const modal = document.getElementById('yoda-modal');
+    const modal = document.getElementById('mock-result-modal');
     const content = document.getElementById('modal-body-content');
     
     let rowsHtml = '';
@@ -265,24 +265,27 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
 
     content.innerHTML = `
         <div style="text-align:center; margin-bottom:20px;">
-            <h2 style="font-size:1.5rem; margin-bottom:5px; color:#1a1a1a;">${isFromExam ? 'Exam Complete! 🎉' : 'Best Results'}</h2>
+            <h2 style="font-size:1.5rem; margin-bottom:5px; color:#1a1a1a;">${isFromExam ? 'Exam Complete! 🎉' : 'Mock Exam Report'}</h2>
             <div style="font-size:3rem; font-weight:800; color:var(--primary-color); line-height:1;">${Math.round(data.bestScore)}<span style="font-size:1rem; opacity:0.5; font-weight:400;"> / 100</span></div>
-            <p style="opacity:0.6; font-size:0.85rem; margin-top:10px;">Attempt on ${new Date(data.date).toLocaleDateString()}</p>
+            <p style="opacity:0.6; font-size:0.85rem; margin-top:10px;">Last attempt on ${new Date(data.date).toLocaleDateString()}</p>
         </div>
         <div style="background:#f9f9f9; border-radius:12px; overflow:hidden; border:1px solid #eee;">
             ${rowsHtml}
         </div>
-        <button class="card-btn" onclick="${closeCall}" style="margin-top:20px; width:100%; background:var(--primary-color); color:white; border:none; padding:12px; border-radius:12px; font-weight:700;">Close Results</button>
+        <button class="card-btn" onclick="${closeCall}" style="margin-top:20px; width:100%; background:#1a1a1a; color:white; border:none; padding:15px; border-radius:12px; font-weight:700; font-size:1rem;">Continue</button>
     `;
     
     modal.classList.add('show');
 };
 
 window.closeModal = () => {
-    const modal = document.getElementById('yoda-modal');
+    const modal = document.getElementById('mock-result-modal');
     if (modal) {
         modal.classList.remove('show');
     }
+    // Also handle generic yoda-modal just in case
+    const yodaModal = document.getElementById('yoda-modal');
+    if (yodaModal) yodaModal.classList.remove('show');
 };
 
 window.handleBackFromExercise = () => {
@@ -840,13 +843,12 @@ function renderResult(xmlStr) {
         'good_yoda.png':      '做得好！\nGreat job!',
         'Yoda.png':           '優答！\nNative Level! 🏆'
     };
-    let reactionImg;
-    if      (pct < 30)              reactionImg = 'Try_Again_Yoda.png';
-    else if (pct >= 50 && pct < 70) reactionImg = 'right_yoda.png';
-    else if (pct >= 70 && pct < 95) reactionImg = 'good_yoda.png';
-    else if (pct >= 95)             reactionImg = 'Yoda.png';
-    else                            reactionImg = 'Try_Again_Yoda.png';
-    showYodaPopup(reactionImg, reactionMessages[reactionImg], Math.round(pct));
+    const reactionImg = pct < 30 ? 'Try_Again_Yoda.png' : (pct < 70 ? 'right_yoda.png' : (pct < 95 ? 'good_yoda.png' : 'Yoda.png'));
+    
+    // Suppress Yoda popup in mock mode
+    if (STATE.activeSection !== 'mock') {
+        showYodaPopup(reactionImg, reactionMessages[reactionImg], Math.round(pct));
+    }
 
     // Delay showing the scorecard and detailed feedback
     setTimeout(() => {
@@ -1336,13 +1338,9 @@ window.goToMockExamDashboard = async () => {
             let scoreHtml = '';
             if (scoreData) {
                 scoreHtml = `
-                    <div class="card-best-score">
-                        <span class="score-label">Best:</span>
-                        <span class="score-val">${Math.round(scoreData.bestScore)}</span>
-                    </div>
                     <div class="card-actions">
                         <button class="card-btn retry-btn" onclick="event.stopPropagation(); startMockExam('${id}')" title="Retake Exam">🔄 Retry</button>
-                        <button class="card-btn view-btn" onclick="event.stopPropagation(); showMockScoreDetails('${id}')">📊 View Score</button>
+                        <button class="card-btn view-btn" onclick="event.stopPropagation(); showMockScoreDetails('${id}')">📊 View Report</button>
                     </div>
                 `;
             } else {
