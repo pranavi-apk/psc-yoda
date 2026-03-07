@@ -454,18 +454,6 @@
         </div>
 
         <div class="bento-grid" style="overflow-y:auto; max-height: calc(100vh - 180px);">
-            <div class="bento-card" onclick="startPlaygroundGame('dan_yin_jie')">
-                <div class="card-icon">👂字</div>
-                <h3>Audio Guessing – Single Syllables</h3>
-                <p>Listen and identify the correct single character. Focus on initial and final sounds.</p>
-                <div class="psc-badge">Section 1 Focus</div>
-            </div>
-            <div class="bento-card" onclick="startPlaygroundGame('duo_yin_jie')">
-                <div class="card-icon">👂词</div>
-                <h3>Audio Guessing – Multi Syllables</h3>
-                <p>Listen and identify the correct multi-character word. Focus on tone sandhi.</p>
-                <div class="psc-badge">Section 2 Focus</div>
-            </div>
             <div class="bento-card" onclick="startMatchGame()">
                 <div class="card-icon">🔗</div>
                 <h3>Retroflex Match-Up</h3>
@@ -483,36 +471,6 @@
                 <h3>Minimal Pairs Battle</h3>
                 <p>Two similar sounds played. Identify which one you heard! Targets retroflex vs flat initials specifically.</p>
                 <div class="psc-badge">Section 1 Focus</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- PLAYGROUND GAME AREA (Audio Guessing) -->
-    <section id="playground-game" class="screen pg-mode">
-        <div class="exam-header" style="justify-content: space-between;">
-            <button class="back-btn" style="margin: 0;" onclick="goToPlaygroundDashboard()">← Quit</button>
-            <h2 id="pg-game-title">Audio Guessing</h2>
-            <div style="width: 80px;"></div> <!-- Spacer -->
-        </div>
-
-        <div class="pg-content-container">
-            <p class="pg-prompt-text">Which word did you hear?</p>
-            
-            <button id="pg-play-audio-btn" class="pg-audio-btn" onclick="playPlaygroundAudio()">
-                <div class="pg-pulse-ring"></div>
-                <span class="pg-audio-icon">🔊</span>
-            </button>
-
-            <div id="pg-options-grid" class="pg-options-grid">
-                <!-- Buttons injected by JS -->
-            </div>
-            
-            <div id="pg-feedback-area" class="pg-feedback-area hidden">
-                <div class="pg-feedback-content">
-                    <span id="pg-feedback-icon" class="pg-icon"></span>
-                    <strong id="pg-feedback-text" class="pg-text"></strong>
-                </div>
-                <button id="pg-next-btn" class="pg-action-btn" onclick="nextPlaygroundTurn()">Next Question</button>
             </div>
         </div>
     </section>
