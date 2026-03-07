@@ -2810,3 +2810,98 @@ body::after {
     from { transform: translateY(30px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
+
+/* Mock Exam Interactive Section 3 */
+.mock-part-wrap {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.mock-sp-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 0.8rem;
+}
+.mock-sp-badge {
+    background: var(--primary-color);
+    color: #1a1a1a;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+.mock-sp-type {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+.mock-sp-instruction {
+    font-size: 0.95rem;
+    opacity: 0.6;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+.mock-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    gap: 20px;
+}
+.mock-item-label {
+    font-size: 1.1rem;
+    color: var(--text);
+}
+.mock-choices-group {
+    display: flex;
+    gap: 10px;
+}
+.mock-choice-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    padding: 6px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+}
+.mock-choice-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
+}
+.mock-choice-btn.selected {
+    background: var(--primary-color);
+    color: #1a1a1a;
+    border-color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* PSC Level Badges */
+.level-badge {
+    display: inline-block;
+    padding: 8px 24px;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.lvl-1a { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
+.lvl-1b { background: linear-gradient(135deg, #C0C0C0, #808080); color: #fff; }
+.lvl-2a { background: linear-gradient(135deg, #CD7F32, #8B4513); color: #fff; }
+.lvl-2b { background: #555; color: #ddd; }
+.lvl-3a { background: #333; color: #ccc; }
+.lvl-3b { background: #222; color: #999; }
+.lvl-fail { background: #8e0000; color: #fff; }
+

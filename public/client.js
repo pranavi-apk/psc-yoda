@@ -242,13 +242,18 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
     const content = document.getElementById('modal-body-content');
     
     const closeCall = isFromExam ? 'closeModal(); goToMockExamDashboard();' : 'closeModal();';
+    const score = Math.round(data.bestScore);
+    const pscLevel = getPscLevel(score);
 
     if (data.genAiReport) {
         // Render the premium GenAI report content
         content.innerHTML = `
             <div style="margin-bottom:20px; text-align:center;">
                 <h2 style="font-size:1.6rem; color:#1a1a1a; margin-bottom:5px;">PSC Mock Exam Report Card</h2>
-                <div style="font-size:3.5rem; font-weight:900; color:var(--primary-color); line-height:1;">${Math.round(data.bestScore)}<span style="font-size:1.2rem; opacity:0.4; font-weight:400;"> / 100</span></div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                    <div style="font-size:3.5rem; font-weight:900; color:var(--primary-color); line-height:1;">${score}<span style="font-size:1.2rem; opacity:0.4; font-weight:400;"> / 100</span></div>
+                    <div class="level-badge ${pscLevel.class}">${pscLevel.name}</div>
+                </div>
             </div>
             <div class="rich-report-container" style="color:#333; font-size:0.95rem;">
                 ${data.genAiReport}
@@ -282,7 +287,10 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
     content.innerHTML = `
         <div style="text-align:center; margin-bottom:20px;">
             <h2 style="font-size:1.5rem; margin-bottom:5px; color:#1a1a1a;">${isFromExam ? 'Exam Complete! 🎉' : 'Mock Exam Report'}</h2>
-            <div style="font-size:3rem; font-weight:800; color:var(--primary-color); line-height:1;">${Math.round(data.bestScore)}<span style="font-size:1rem; opacity:0.5; font-weight:400;"> / 100</span></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <div style="font-size:3rem; font-weight:800; color:var(--primary-color); line-height:1;">${score}<span style="font-size:1rem; opacity:0.5; font-weight:400;"> / 100</span></div>
+                <div class="level-badge ${pscLevel.class}">${pscLevel.name}</div>
+            </div>
             <p style="opacity:0.6; font-size:0.85rem; margin-top:10px;">Last attempt on ${new Date(data.date).toLocaleDateString()}</p>
         </div>
         <div style="background:#f9f9f9; border-radius:12px; overflow:hidden; border:1px solid #eee;">
@@ -293,6 +301,16 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
     
     modal.classList.add('show');
 };
+
+function getPscLevel(score) {
+    if (score >= 97) return { name: "Level 1-A (一级甲等)", class: "lvl-1a" };
+    if (score >= 92) return { name: "Level 1-B (一级乙等)", class: "lvl-1b" };
+    if (score >= 87) return { name: "Level 2-A (二级甲等)", class: "lvl-2a" };
+    if (score >= 80) return { name: "Level 2-B (二级乙等)", class: "lvl-2b" };
+    if (score >= 70) return { name: "Level 3-A (三级甲等)", class: "lvl-3a" };
+    if (score >= 60) return { name: "Level 3-B (三级乙等)", class: "lvl-3b" };
+    return { name: "Not enough to pass (不合格)", class: "lvl-fail" };
+}
 
 window.closeModal = () => {
     const modal = document.getElementById('mock-result-modal');
@@ -1399,9 +1417,10 @@ window.startMockExam = async (examId) => {
         const examData = await res.json();
         
         STATE.mockExam.data = examData;
-        STATE.mockExam.id = examId; // Track the filename-based ID for scoring
+        STATE.mockExam.id = examId;
         STATE.mockExam.currentPartIndex = 0;
         STATE.mockExam.sectionResults = [null, null, null, null, null];
+        STATE.mockExam.userChoices = {}; // { spIdx: { itemIdx: selectedOptIdx } }
         STATE.activeSection = 'mock'; 
 
         // Populate instruction screen
@@ -1436,32 +1455,56 @@ function loadMockExamPart(index) {
     textEl.innerHTML = ''; // Clear previous
 
     if (part.subParts) {
-        // Multi-part content (Section 3)
+        // Multi-part content (Section 3) - INTERACTIVE version
         part.subParts.forEach((sp, spIdx) => {
             const wrap = document.createElement('div');
-            wrap.style.marginBottom = '25px';
-            wrap.style.padding = '15px';
-            wrap.style.background = 'rgba(255,255,255,0.05)';
-            wrap.style.borderRadius = '12px';
-            wrap.style.border = '1px solid rgba(255,255,255,0.1)';
+            wrap.className = 'mock-part-wrap';
             
             const items = sp.items || sp.examples || [];
-            const itemsHtml = items.map(it => `
-                <div style="font-size:1.1rem; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
-                    <span>${it}</span>
-                    <input type="checkbox" style="width:20px; height:20px;" disabled checked>
-                </div>
-            `).join('');
+            const itemsHtml = items.map((it, itemIdx) => {
+                let options = [];
+                let labelText = it;
+
+                // Simple parser for standard formats:
+                // format 1: (1) 地铁 / 港铁
+                // format 2: 一(棵/株)树
+                if (it.includes(' / ')) {
+                    options = it.split('/').map(o => o.replace(/\(\d+\)\s*/, '').trim());
+                    labelText = `Item ${itemIdx + 1}`;
+                } else if (it.includes('(') && it.includes(')')) {
+                    const match = it.match(/(.*)\((.*)\)(.*)/);
+                    if (match) {
+                        const pre = match[1], opts = match[2], post = match[3];
+                        options = opts.split('/').map(o => o.trim());
+                        labelText = `${pre}( ? )${post}`;
+                    }
+                }
+
+                if (options.length === 0) return `<div class="mock-item-row"><span>${it}</span></div>`;
+
+                const optionBtns = options.map((opt, optIdx) => {
+                    const isSelected = STATE.mockExam.userChoices[spIdx]?.[itemIdx] === optIdx;
+                    return `<button class="mock-choice-btn ${isSelected ? 'selected' : ''}" 
+                                   onclick="selectMockChoice(${spIdx}, ${itemIdx}, ${optIdx}, this)">
+                                ${opt}
+                            </button>`;
+                }).join('');
+
+                return `
+                    <div class="mock-item-row">
+                        <span class="mock-item-label">${labelText}</span>
+                        <div class="mock-choices-group">${optionBtns}</div>
+                    </div>
+                `;
+            }).join('');
 
             wrap.innerHTML = `
-                <h4 style="font-size:1.2rem; color:#38d9c8; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-                    <span style="background:#38d9c8; color:#1a1a1a; width:24px; height:24px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:0.8rem;">${spIdx+1}</span>
-                    ${sp.type}
-                </h4>
-                <p style="font-size:0.9rem; opacity:0.7; margin-bottom:15px; font-style:italic;">${sp.instruction}</p>
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    ${itemsHtml}
+                <div class="mock-sp-header">
+                    <span class="mock-sp-badge">${spIdx+1}</span>
+                    <span class="mock-sp-type">${sp.type}</span>
                 </div>
+                <p class="mock-sp-instruction">${sp.instruction}</p>
+                <div class="mock-items-list">${itemsHtml}</div>
             `;
             textEl.appendChild(wrap);
         });
@@ -1539,12 +1582,27 @@ window.nextExamPart = () => {
     const currentPart = STATE.mockExam.currentPartIndex;
     if (!STATE.mockExam.sectionResults[currentPart]) {
         const section = STATE.mockExam.data.sections[currentPart];
-        // For Section 3 (Choice), give 100% since it's just knowledge/mock for now
+        // Calculate Section 3 score based on user choices
         if (section.id === 'section_3') {
+            let correctCount = 0;
+            let totalItems = 0;
+            section.subParts.forEach((sp, spIdx) => {
+                const items = sp.items || sp.examples || [];
+                items.forEach((it, itemIdx) => {
+                    const selected = STATE.mockExam.userChoices[spIdx]?.[itemIdx];
+                    if (selected === 0) correctCount++; // Assume first option is always the correct PSC standard
+                    totalItems++;
+                });
+            });
+            const pct = (correctCount / totalItems) * 100;
             STATE.mockExam.sectionResults[currentPart] = {
                 sectionId: section.id,
-                totalScore: section.score,
-                percent: 100
+                title: section.title,
+                text: "Selective Judgment Selections",
+                totalScore: (pct / 100) * section.score,
+                percent: pct,
+                tone: pct, fluency: 100, phone: 100, integrity: 100,
+                errors: [], errorStats: { skipped: 0, tone: 0, sound: 0, extra: 0 }
             };
         }
     }
@@ -2531,3 +2589,18 @@ window.goToDashboard = () => {
 
 // Initial load
 setTimeout(updateDashboardFCStats, 1000);
+
+window.selectMockChoice = (spIdx, itemIdx, optIdx, btn) => {
+    if (!STATE.mockExam.userChoices) STATE.mockExam.userChoices = {};
+    if (!STATE.mockExam.userChoices[spIdx]) STATE.mockExam.userChoices[spIdx] = {};
+    STATE.mockExam.userChoices[spIdx][itemIdx] = optIdx;
+    
+    // Update UI toggle
+    const group = btn.parentElement;
+    if (group) {
+        group.querySelectorAll('.mock-choice-btn').forEach((b, i) => {
+            b.classList.toggle('selected', i === optIdx);
+        });
+    }
+};
+
