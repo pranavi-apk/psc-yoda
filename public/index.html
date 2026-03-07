@@ -163,20 +163,32 @@
         </div>
 
         <div class="bento-grid">
-            <div class="bento-card" onclick="startExercise('xuan_ze', 1)">
-                <div class="card-icon">1</div>
+            <div class="bento-card dash-card" data-section="s3p1" onclick="startExercise('xuan_ze', 1)">
+                <div class="dash-card-top">
+                    <div class="card-icon">1</div>
+                    <span class="section-num">P1</span>
+                </div>
                 <h3>Part 1: 词语判断</h3>
-                <p>Correct usage of vocabulary.</p>
+                <p>Correct usage of vocabulary in context.</p>
+                <div class="psc-badge">Part 1</div>
             </div>
-            <div class="bento-card" onclick="startExercise('xuan_ze', 2)">
-                <div class="card-icon">2</div>
+            <div class="bento-card dash-card" data-section="s3p2" onclick="startExercise('xuan_ze', 2)">
+                <div class="dash-card-top">
+                    <div class="card-icon">量</div>
+                    <span class="section-num">P2</span>
+                </div>
                 <h3>Part 2: 量词搭配</h3>
                 <p>Measure words with nouns.</p>
+                <div class="psc-badge">Part 2</div>
             </div>
-            <div class="bento-card" onclick="startExercise('xuan_ze', 3)">
-                <div class="card-icon">3</div>
+            <div class="bento-card dash-card" data-section="s3p3" onclick="startExercise('xuan_ze', 3)">
+                <div class="dash-card-top">
+                    <div class="card-icon">法</div>
+                    <span class="section-num">P3</span>
+                </div>
                 <h3>Part 3: 语法判断</h3>
-                <p>Sentence structure and grammar.</p>
+                <p>Sentence structure and grammar rules.</p>
+                <div class="psc-badge">Part 3</div>
             </div>
         </div>
     </section>
@@ -605,34 +617,42 @@
             <p>Scientifically-proven interactive games for Cantonese speakers to train Mandarin pronunciation and ear.</p>
         </div>
 
-        <div class="bento-grid" style="overflow-y:auto; max-height: calc(100vh - 180px);">
+        <div class="bento-grid">
             <!-- Flashcard Dictionary -->
-            <div class="bento-card wide flashcard-bento" onclick="goToFlashcardList()">
-                <div class="card-content">
+            <div class="bento-card wide dash-card flashcard-bento" data-section="fc" onclick="goToFlashcardList()">
+                <div class="dash-card-top">
                     <div class="card-icon">复</div>
-                    <div class="text-content">
-                        <h3>复习词库</h3>
-                        <p>AI-powered spaced repetition. View all your error cards, track progress &amp; start targeted review.</p>
-                    </div>
+                    <span class="section-num">FC</span>
                 </div>
+                <h3>复习词库</h3>
+                <p>AI-powered spaced repetition. View all your error cards, track progress &amp; start targeted review.</p>
                 <div class="mini-mastery-stats" id="dashboard-mastery-stats">0 Mastered</div>
             </div>
-            <div class="bento-card" onclick="startMatchGame()">
-                <div class="card-icon">🔗</div>
+            <div class="bento-card dash-card" data-section="pg1" onclick="startMatchGame()">
+                <div class="dash-card-top">
+                    <div class="card-icon">🔗</div>
+                    <span class="section-num">G1</span>
+                </div>
                 <h3>Retroflex Match-Up</h3>
-                <p>Match similar-sounding retroflex pinyin (zh/ch/sh) to their correct characters. Left pinyin, right characters.</p>
+                <p>Match similar-sounding retroflex pinyin (zh/ch/sh) to their correct characters.</p>
                 <div class="psc-badge">Section 1 Focus</div>
             </div>
-            <div class="bento-card" onclick="startToneGame()">
-                <div class="card-icon">🎵</div>
+            <div class="bento-card dash-card" data-section="pg2" onclick="startToneGame()">
+                <div class="dash-card-top">
+                    <div class="card-icon">🎵</div>
+                    <span class="section-num">G2</span>
+                </div>
                 <h3>Tone Identification Challenge</h3>
                 <p>Listen to a word and identify which tone it uses — 1st, 2nd, 3rd, 4th, or neutral.</p>
                 <div class="psc-badge">All Sections</div>
             </div>
-            <div class="bento-card" onclick="startMinimalPairsGame()">
-                <div class="card-icon">🎯</div>
+            <div class="bento-card dash-card" data-section="pg3" onclick="startMinimalPairsGame()">
+                <div class="dash-card-top">
+                    <div class="card-icon">🎯</div>
+                    <span class="section-num">G3</span>
+                </div>
                 <h3>Minimal Pairs Battle</h3>
-                <p>Two similar sounds played. Identify which one you heard! Targets retroflex vs flat initials specifically.</p>
+                <p>Two similar sounds played. Identify which one you heard! Targets retroflex vs flat initials.</p>
                 <div class="psc-badge">Section 1 Focus</div>
             </div>
         </div>
