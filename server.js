@@ -95,7 +95,9 @@ Priority Targets:
 3. The "ü" sound: e.g., 绿 (lǜ), 去 (qù), 语 (yǔ).
 4. Tone 3 sandhi and tone pairs: e.g., 小 (xiǎo), 路 (lù), 也 (yě), 此 (cǐ), 好 (hǎo).
 5. -in/-ing distinctions: e.g., 林 (lín), 尽 (jìn), 清 (qīng), 景 (jǐng).
-Incorporate these specific sounds frequently into the generated content.`
+Incorporate these specific sounds frequently into the generated content.
+
+**SAFETY RULE:** Strictly avoid generating keywords related to swimwear, beachwear, suggestive themes, or any other distracting, age-inappropriate content. Focus on clean, educational, and whimsical sceneries (e.g., "blue ocean with sandcastles", "serene mountains").`
         },
         {
             role: 'user',
@@ -352,8 +354,11 @@ app.post('/api/generate-content', async (req, res) => {
 // ─── REST: Google Cloud TTS Proxy ───────────────────────────────────────────
 // ─── REST: Pixabay Image Search ──────────────────────────────────────────────
 app.get('/api/pixabay', (req, res) => {
-    const q = req.query.q || 'nature';
-    const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(q)}&image_type=illustration&orientation=horizontal&min_width=800&per_page=10&safesearch=true&order=popular`;
+    let q = req.query.q || 'nature';
+    // Append negative keywords for educational safety
+    q += ' -bikini -swimsuit -lingerie -sexy -nude';
+    
+    const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(q)}&image_type=illustration&orientation=horizontal&min_width=800&per_page=10&safesearch=true&order=popular&category=nature,backgrounds,education,places,travel`;
     https.get(url, (pixRes) => {
         let data = '';
         pixRes.on('data', chunk => data += chunk);
