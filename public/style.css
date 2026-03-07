@@ -2023,10 +2023,7 @@ body::after {
 /* ════════════════════════════════════════════════════════
    FLASHCARD BENTO CARD (Dashboard)
    ════════════════════════════════════════════════════════ */
-.bento-card.flashcard-bento {
-}
-.bento-card.flashcard-bento:hover {
-}
+
 .flashcard-bento-stats {
     display: flex; gap: 1rem; margin-top: 0.5rem;
 }
@@ -2037,10 +2034,7 @@ body::after {
     font-size: 0.72rem; font-weight: 700;
     padding: 3px 10px; border-radius: 50px;
 }
-.bento-card.mastery-bento {
-}
-.bento-card.mastery-bento:hover {
-}
+
 
 /* Navbar flashcard/mastery buttons */
 .flashcard-nav-btn {

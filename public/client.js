@@ -1241,6 +1241,7 @@ window.revealAnswer = () => {
     // Update target text so speech evaluation scores the CORRECT answer
     STATE.currentText  = STATE.correctAnswer;
     STATE.currentChars = STATE.correctAnswer.split('').map(c => ({ c, p: '' }));
+};
 
 /* ==========================================================================
    PLAYGROUND EXPERIENCES (Duolingo-style)
