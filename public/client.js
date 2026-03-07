@@ -190,6 +190,7 @@ function switchScreen(name) {
                 'dashboard': 'nav-home',
                 'mockExamDashboard': 'nav-mock',
                 'masteryDashboard': 'nav-mastery',
+                'playground-dashboard': 'nav-playground',
                 'aboutPsc': 'nav-about'
             };
 
