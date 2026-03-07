@@ -576,9 +576,15 @@ function renderPromptWithPinyin(chars, plainText) {
     recordBtn.style.pointerEvents = 'auto';
 
     if (STATE.activeSection === 'xuan_ze' && STATE.currentOptions.length > 0) {
-        // Show target-text for context (e.g., "一____明月")
-        displayEl.classList.remove('hidden');
-        displayEl.innerText = plainText || ''; 
+        // Show target-text for context (e.g., "一____明月") EXCEPT for Part 1 (Answer Leak)
+        if (STATE.currentSection3Part === 1) {
+            displayEl.classList.add('hidden');
+            displayEl.style.display = 'none';
+        } else {
+            displayEl.classList.remove('hidden');
+            displayEl.style.display = 'flex';
+            displayEl.innerText = plainText || ''; 
+        }
         renderSection3Choice();
         return;
     }
