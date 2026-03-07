@@ -400,6 +400,12 @@ body::after {
     margin: 0 auto;
 }
 
+#mock-exam-list {
+    /* 10 mock exams -> make it a perfectly symmetrical 2-column grid instead of 3 */
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 800px;
+}
+
 .bento-card {
     background: var(--card);
     border: 1px solid var(--card-border);
