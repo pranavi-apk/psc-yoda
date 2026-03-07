@@ -2640,3 +2640,111 @@ body::after {
 }
 
 
+
+/* Mock Exam Card Enhancements */
+.card-best-score {
+    position: absolute;
+    bottom: 60px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 10px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+.card-best-score .score-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    opacity: 0.7;
+    font-weight: 600;
+}
+.card-best-score .score-val {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--primary-color);
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.card-btn {
+    flex: 1;
+    padding: 8px 4px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-btn:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.retry-btn {
+    background: rgba(108, 92, 231, 0.1);
+    border-color: rgba(108, 92, 231, 0.3);
+}
+
+.retry-btn:hover {
+    background: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+
+.view-btn {
+    background: rgba(56, 217, 200, 0.1);
+    border-color: rgba(56, 217, 200, 0.3);
+}
+
+.view-btn:hover {
+    background: #38d9c8;
+    color: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(56, 217, 200, 0.3);
+}
+
+/* Yoda Modal Styles */
+.yoda-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.yoda-modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 24px;
+    padding: 30px;
+    position: relative;
+    color: #1a1a1a;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalSlideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

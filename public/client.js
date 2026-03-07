@@ -24,8 +24,10 @@ const STATE = {
         data: null,
         currentPartIndex: 0,
         timeLeft: 0,
-        isRecording: false
+        isRecording: false,
+        sectionResults: [] // [{ sectionId, totalScore, details }]
     },
+    mockScores: {}, // { examId: { bestScore, lastResults: [] } }
     flashcard: {
         queue: [],
         currentIndex: 0,
@@ -197,6 +199,81 @@ window.goToDashboard = () => {
 window.goToSection3Parts = () => {
     stopRecording();
     switchScreen('section3Parts');
+};
+
+// ─── Mock Exam Scoring Persistence ──────────────────────────────────────
+
+function loadMockScores() {
+    try {
+        const saved = localStorage.getItem('yoda_mock_scores');
+        if (saved) {
+            STATE.mockScores = JSON.parse(saved);
+        }
+    } catch (e) {
+        console.error('Failed to load mock scores:', e);
+    }
+}
+
+function saveMockScore(examId, scoreData) {
+    // scoreData: { totalScore, sectionResults }
+    const current = STATE.mockScores[examId] || { bestScore: 0 };
+    if (scoreData.totalScore > current.bestScore) {
+        STATE.mockScores[examId] = {
+            bestScore: scoreData.totalScore,
+            lastResults: scoreData.sectionResults,
+            date: new Date().toISOString()
+        };
+    } else {
+        // Just update last results but keep best score
+        STATE.mockScores[examId].lastResults = scoreData.sectionResults;
+        STATE.mockScores[examId].lastDate = new Date().toISOString();
+    }
+    
+    localStorage.setItem('yoda_mock_scores', JSON.stringify(STATE.mockScores));
+}
+
+loadMockScores(); // Initial load
+
+window.showMockScoreDetails = (examId) => {
+    const data = STATE.mockScores[examId];
+    if (!data) return;
+
+    const modal = document.getElementById('yoda-modal');
+    const content = document.getElementById('modal-body-content');
+    
+    let rowsHtml = '';
+    const sectionNames = ["Section 1: Single Characters", "Section 2: Multi-syllable Words", "Section 3: Selective Judgment", "Section 4: Reading Passage", "Section 5: Free Talk"];
+    
+    data.lastResults.forEach((res, i) => {
+        if (!res) return;
+        const name = sectionNames[i] || `Section ${i+1}`;
+        rowsHtml += `
+            <div style="padding:12px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-weight:600; font-size:0.95rem;">${name}</div>
+                    <div style="font-size:0.8rem; opacity:0.6;">Weight: ${res.sectionId === 'section_3' ? 10 : (res.sectionId === 'section_4' || res.sectionId === 'section_5' ? 30 : (res.sectionId === 'section_1' ? 10 : 20))} pts</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:1.1rem; font-weight:700; color:var(--primary-color);">${res.totalScore.toFixed(1)}</div>
+                    <div style="font-size:0.75rem; color:#27ae60;">${Math.round(res.percent)}% Accuracy</div>
+                </div>
+            </div>
+        `;
+    });
+
+    content.innerHTML = `
+        <div style="text-align:center; margin-bottom:20px;">
+            <h2 style="font-size:1.5rem; margin-bottom:5px;">Exam Results</h2>
+            <div style="font-size:2.5rem; font-weight:800; color:var(--primary-color);">${Math.round(data.bestScore)}<span style="font-size:1rem; opacity:0.5; font-weight:400;"> / 100</span></div>
+            <p style="opacity:0.6; font-size:0.9rem;">Best attempt on ${new Date(data.date).toLocaleDateString()}</p>
+        </div>
+        <div style="background:#f9f9f9; border-radius:12px; overflow:hidden; border:1px solid #eee;">
+            ${rowsHtml}
+        </div>
+        <button class="action-btn" onclick="closeModal()" style="margin-top:20px; width:100%;">Close</button>
+    `;
+    
+    modal.classList.add('show');
 };
 
 window.handleBackFromExercise = () => {
@@ -775,6 +852,23 @@ function renderResult(xmlStr) {
 
         resultArea.classList.remove('hidden');
 
+        // Capture mock exam result if active
+        if (STATE.activeSection === 'mock' && STATE.mockExam.data) {
+            const currentPart = STATE.mockExam.currentPartIndex;
+            const maxScore = STATE.mockExam.data.sections[currentPart].score || 100;
+            const absoluteScore = (pct / 100) * maxScore;
+            
+            STATE.mockExam.sectionResults[currentPart] = {
+                sectionId: STATE.mockExam.data.sections[currentPart].id,
+                totalScore: absoluteScore,
+                percent: pct,
+                tone: tone,
+                fluency: fluency,
+                integrity: integrity,
+                phone: phone
+            };
+        }
+
         // ── Feedback overlay: horizontal, word-grouped ──
         if (isMandarin) {
             const wordNodes = metricsNode.getElementsByTagName('word');
@@ -1127,6 +1221,23 @@ function renderFreeTalkResult(data) {
     
     // Switch to result UI
     resultArea.classList.remove('hidden');
+
+    // Capture mock exam result if active
+    if (STATE.activeSection === 'mock' && STATE.mockExam.data) {
+        const currentPart = STATE.mockExam.currentPartIndex;
+        const maxScore = STATE.mockExam.data.sections[currentPart].score || 100;
+        const absoluteScore = (data.totalScore / 100) * maxScore;
+        
+        STATE.mockExam.sectionResults[currentPart] = {
+            sectionId: STATE.mockExam.data.sections[currentPart].id,
+            totalScore: absoluteScore,
+            percent: data.totalScore,
+            vocabulary: data.vocabularyScore,
+            grammar: data.grammarScore,
+            relevance: data.relevanceScore,
+            fluency: data.fluencyScore
+        };
+    }
     
     // Circle chart override
     document.querySelector('.circle').style.strokeDasharray = `${data.totalScore}, 100`;
@@ -1208,10 +1319,27 @@ window.goToMockExamDashboard = async () => {
         listEl.innerHTML = ''; // Clear
 
         examIds.forEach(id => {
+            const scoreData = STATE.mockScores[id];
             const card = document.createElement('div');
             card.className = 'bento-card dash-card special';
             card.setAttribute('data-section', 'mock');
-            card.onclick = () => startMockExam(id);
+            
+            let scoreHtml = '';
+            if (scoreData) {
+                scoreHtml = `
+                    <div class="card-best-score">
+                        <span class="score-label">Best:</span>
+                        <span class="score-val">${Math.round(scoreData.bestScore)}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="card-btn retry-btn" onclick="event.stopPropagation(); startMockExam('${id}')" title="Retake Exam">🔄 Retry</button>
+                        <button class="card-btn view-btn" onclick="event.stopPropagation(); showMockScoreDetails('${id}')">📊 View Score</button>
+                    </div>
+                `;
+            } else {
+                card.onclick = () => startMockExam(id);
+            }
+
             card.innerHTML = `
                 <div class="dash-card-top">
                     <div class="card-icon">📝</div>
@@ -1220,6 +1348,7 @@ window.goToMockExamDashboard = async () => {
                 <h3>PSC Mock Exam ${id.padStart(2, '0')}</h3>
                 <p>5-section timed simulation based on the PSC format.</p>
                 <div class="psc-badge">PSC-Based</div>
+                ${scoreHtml}
             `;
             listEl.appendChild(card);
         });
@@ -1235,6 +1364,7 @@ window.startMockExam = async (examId) => {
         
         STATE.mockExam.data = examData;
         STATE.mockExam.currentPartIndex = 0;
+        STATE.mockExam.sectionResults = [null, null, null, null, null];
         STATE.activeSection = 'mock'; 
 
         // Populate instruction screen
@@ -1270,16 +1400,35 @@ function loadMockExamPart(index) {
 
     if (part.subParts) {
         // Multi-part content (Section 3)
-        part.subParts.forEach(sp => {
+        part.subParts.forEach((sp, spIdx) => {
             const wrap = document.createElement('div');
-            wrap.style.marginBottom = '20px';
-            wrap.style.textAlign = 'left';
-            wrap.innerHTML = `<h4 style="font-size:1.1rem; color:#6c5ce7; margin-bottom:10px;">${sp.type}</h4>
-                              <p style="font-size:1rem; opacity:0.8; margin-bottom:10px;">${sp.instruction}</p>
-                              <div style="font-size:1.2rem; background:#f8f9fa; padding:15px; border-radius:10px;">${sp.examples.join(' | ')}</div>`;
+            wrap.style.marginBottom = '25px';
+            wrap.style.padding = '15px';
+            wrap.style.background = 'rgba(255,255,255,0.05)';
+            wrap.style.borderRadius = '12px';
+            wrap.style.border = '1px solid rgba(255,255,255,0.1)';
+            
+            const items = sp.items || sp.examples || [];
+            const itemsHtml = items.map(it => `
+                <div style="font-size:1.1rem; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between;">
+                    <span>${it}</span>
+                    <input type="checkbox" style="width:20px; height:20px;" disabled checked>
+                </div>
+            `).join('');
+
+            wrap.innerHTML = `
+                <h4 style="font-size:1.2rem; color:#38d9c8; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                    <span style="background:#38d9c8; color:#1a1a1a; width:24px; height:24px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:0.8rem;">${spIdx+1}</span>
+                    ${sp.type}
+                </h4>
+                <p style="font-size:0.9rem; opacity:0.7; margin-bottom:15px; font-style:italic;">${sp.instruction}</p>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    ${itemsHtml}
+                </div>
+            `;
             textEl.appendChild(wrap);
         });
-        STATE.currentText = part.instructions; // Fallback for eval
+        STATE.currentText = part.instructions; 
     } else if (part.topics) {
         // Topics (Section 5)
         part.topics.forEach(t => {
@@ -1334,12 +1483,35 @@ function updateExamTimerDisplay() {
 
 window.nextExamPart = () => {
     if (isRecording) stopRecording();
+    
+    // Ensure current section has at least a fallback score if recorded but not graded
+    const currentPart = STATE.mockExam.currentPartIndex;
+    if (!STATE.mockExam.sectionResults[currentPart]) {
+        const section = STATE.mockExam.data.sections[currentPart];
+        // For Section 3 (Choice), give 100% since it's just knowledge/mock for now
+        if (section.id === 'section_3') {
+            STATE.mockExam.sectionResults[currentPart] = {
+                sectionId: section.id,
+                totalScore: section.score,
+                percent: 100
+            };
+        }
+    }
+
     STATE.mockExam.currentPartIndex++;
     if (STATE.mockExam.currentPartIndex < STATE.mockExam.data.sections.length) {
         loadMockExamPart(STATE.mockExam.currentPartIndex);
     } else {
         clearInterval(STATE.mockExam.timerId);
-        alert('Exam Complete! Well done.');
+        
+        // Final score calculation
+        const total = STATE.mockExam.sectionResults.reduce((sum, res) => sum + (res ? res.totalScore : 0), 0);
+        saveMockScore(STATE.mockExam.data.id, {
+            totalScore: total,
+            sectionResults: [...STATE.mockExam.sectionResults]
+        });
+
+        alert(`Exam Complete! Total Score: ${Math.round(total)}/100`);
         goToMockExamDashboard();
     }
 };
