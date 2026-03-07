@@ -622,74 +622,134 @@
     <!-- PLAYGROUND DASHBOARD -->
     <section id="about-psc" class="screen">
         <div class="dashboard-header">
-            <button class="back-btn" onclick="goToDashboard()">← Back</button>
-            <h2>About PSC & Yoda</h2>
-            <p>Everything you need to know about the exam and how to use this platform.</p>
+            <button class="back-btn" onclick="switchScreen('onboarding')">← Back to Start</button>
+            <div style="text-align: center; flex: 1;">
+                <h2 style="font-family: var(--font-cn); letter-spacing: 2px;">About PSC & Yoda 优答</h2>
+                <p style="opacity: 0.6; font-size: 0.9rem;">Mastering the Putonghua Proficiency Test (PSC)</p>
+            </div>
+            <div style="width: 80px;"></div> <!-- balance -->
         </div>
 
         <div class="doc-container">
-            <!-- PSC EXAM BREAKDOWN -->
+            <!-- DEEP EXAM BREAKDOWN -->
             <div class="doc-card">
-                <h3>📖 The PSC Exam Structure</h3>
-                <div class="doc-grid">
-                    <div class="exam-part">
-                        <span class="part-num">01</span>
-                        <h4>Single Syllables</h4>
-                        <p>Read 100 characters. Focus on precision, tone, and initials/finals.</p>
+                <div class="doc-card-header">
+                    <span class="step-icon" style="background: rgba(212, 175, 55, 0.1); color: var(--gold);">🏆</span>
+                    <div>
+                        <h3>The PSC Exam In-Depth</h3>
+                        <p>The Putonghua Proficiency Test is a standardized exam consisting of 5 key sections, totaling 100 points.</p>
                     </div>
-                    <div class="exam-part">
-                        <span class="part-num">02</span>
-                        <h4>Multi-syllable Words</h4>
-                        <p>50 words. Tests your tone changes (Sandhi) and natural flow.</p>
+                </div>
+
+                <div class="doc-detailed-grid">
+                    <div class="detailed-part">
+                        <div class="part-top">
+                            <span class="part-label">Part 01</span>
+                            <span class="part-score">10 Points</span>
+                        </div>
+                        <h4>Single Syllables (100 Characters)</h4>
+                        <p>You must read 100 characters within 3.5 minutes. Grading focuses on the <strong>total accuracy of initials, finals, and tones</strong>. Missing a tone or mispronouncing a vowel will result in small deductions.</p>
+                        <ul class="doc-list">
+                            <li>100 characters total</li>
+                            <li>Time limit: 3.5 minutes</li>
+                            <li>Focus: Standard vowel/consonant precision</li>
+                        </ul>
                     </div>
-                    <div class="exam-part">
-                        <span class="part-num">03</span>
-                        <h4>Word Choice & Grammar</h4>
-                        <p>Correct use of suffixes, measure words, and common phrases.</p>
+
+                    <div class="detailed-part">
+                        <div class="part-top">
+                            <span class="part-label">Part 02</span>
+                            <span class="part-score">20 Points</span>
+                        </div>
+                        <h4>Multi-syllable Words (50 Items)</h4>
+                        <p>Focuses on 100 characters arranged into words. This part tests <strong>Sandhi (tone changes)</strong>, neutral tones (轻声), and Erhua (儿化) pronunciations.</p>
+                        <ul class="doc-list">
+                            <li>50 multi-syllable words</li>
+                            <li>Tests: Tone sandhi & natural flow</li>
+                            <li>Focus: Smooth transitions between syllables</li>
+                        </ul>
                     </div>
-                    <div class="exam-part">
-                        <span class="part-num">04</span>
-                        <h4>Reading Aloud</h4>
-                        <p>A 400-word passage. Evaluates fluency, rhythm, and accuracy.</p>
+
+                    <div class="detailed-part">
+                        <div class="part-top">
+                            <span class="part-label">Part 03</span>
+                            <span class="part-score">10 Points</span>
+                        </div>
+                        <h4>Word Choice & Judgment</h4>
+                        <p>Tests your internalized grammar. You'll read common phrases or decide the correct measure words, suffixes like 'zi' or 'er', and distinguishing between regional dialects and standard Mandarin.</p>
+                        <ul class="doc-list">
+                            <li>Tests: Lexical & Grammatical accuracy</li>
+                            <li>Focus: Measure words & functional grammar</li>
+                        </ul>
                     </div>
-                    <div class="exam-part">
-                        <span class="part-num">05</span>
-                        <h4>Free Speaking</h4>
-                        <p>3-minute monologue on a given topic. Demonstrates spontaneous mastery.</p>
+
+                    <div class="detailed-part">
+                        <div class="part-top">
+                            <span class="part-label">Part 04</span>
+                            <span class="part-score">30 Points</span>
+                        </div>
+                        <h4>Reading Aloud (400 Words)</h4>
+                        <p>You'll read a pre-selected passage of 400 characters. Points are deducted for pauses, misread words, skipped lines, or poor rhythm. <strong>Fluency and volume</strong> are critical here.</p>
+                        <ul class="doc-list">
+                            <li>Length: 400 character passage</li>
+                            <li>Time limit: 4 minutes</li>
+                            <li>Focus: Intonation, rhythm, and expressive flow</li>
+                        </ul>
+                    </div>
+
+                    <div class="detailed-part wide">
+                        <div class="part-top">
+                            <span class="part-label">Part 05</span>
+                            <span class="part-score">40 Points</span>
+                        </div>
+                        <h4>Propositional Speech (3 Minutes)</h4>
+                        <p>The most weighted section. You'll choose a topic and speak freely for 3 minutes. The AI coach (and real examiners) look for <strong>vocabulary richness, grammatical variety</strong>, and absence of slang or hesitation.</p>
+                        <ul class="doc-list">
+                            <li>3-minute continuous speech</li>
+                            <li>Focus: Spontaneous language production</li>
+                            <li>Grading: Grammar accuracy & vocabulary depth</li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <!-- HOW TO USE YODA -->
+            <!-- HOW TO USE THE COACH -->
             <div class="doc-card">
-                <h3>🛠️ How to Use Yoda 优答</h3>
-                <div class="guide-steps">
+                <div class="doc-card-header">
+                    <span class="step-icon">🤖</span>
+                    <div>
+                        <h3>Mastering Yoda 优答</h3>
+                        <p>How to use our AI components to accelerate your learning journey.</p>
+                    </div>
+                </div>
+
+                <div class="guide-steps" style="margin-top: 2rem;">
                     <div class="step">
-                        <div class="step-icon">🎯</div>
+                        <div class="step-num-circle">1</div>
                         <div class="step-info">
-                            <h5>1. Set Your Goal</h5>
-                            <p>Select your target grade (Level 1A to 3B) on the home screen. Yoda will tailor the coaching to that standard.</p>
+                            <h5>Choose Your Target Level</h5>
+                            <p>PSC has different levels (1A, 1B, 2A, etc.). Select the level you want to achieve. Yoda adjusts its "strictness" and scoring thresholds based on this goal.</p>
                         </div>
                     </div>
                     <div class="step">
-                        <div class="step-icon">🎙️</div>
+                        <div class="step-num-circle">2</div>
                         <div class="step-info">
-                            <h5>2. Practice Daily</h5>
-                            <p>Pick a theme in "Practice Mode". Record your voice and click 'Generate Report' for instant AI feedback.</p>
+                            <h5>Record and Analyze</h5>
+                            <p>Practice any section. After recording, Yoda's coach provides a <strong>detailed mistake breakdown</strong>. Click 'Export PDF' to keep a copy of your technical report.</p>
                         </div>
                     </div>
                     <div class="step">
-                        <div class="step-icon">📉</div>
+                        <div class="step-num-circle">3</div>
                         <div class="step-info">
-                            <h5>3. Track Progress</h5>
-                            <p>Use the **Mastery Dashboard** to see your learning curve and check your "Cantonese Interference Patterns".</p>
+                            <h5>Fix Cantonese Patterns</h5>
+                            <p>Most students from Hong Kong struggle with similar patterns (e.g. z/zh, n/l). Use the <strong>Mastery Dashboard</strong> to see a heatmap of exactly which patterns you need to focus on to reach Level 1.</p>
                         </div>
                     </div>
                     <div class="step">
-                        <div class="step-icon">📝</div>
+                        <div class="step-num-circle">4</div>
                         <div class="step-info">
-                            <h5>4. Mock Exams</h5>
-                            <p>When you feel ready, take a full Mock Exam (50-60 items) to simulate the real test environment.</p>
+                            <h5>Full Mock Simulations</h5>
+                            <p>The "Mock Exam" mode is a full 100-point simulation. Use this once a week to test your stamina and see how you rank against real PSC grading standards.</p>
                         </div>
                     </div>
                 </div>
