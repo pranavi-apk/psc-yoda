@@ -215,18 +215,27 @@ function loadMockScores() {
 }
 
 function saveMockScore(examId, scoreData) {
-    // scoreData: { totalScore, sectionResults }
-    const current = STATE.mockScores[examId] || { bestScore: 0 };
-    if (scoreData.totalScore > current.bestScore) {
+    // Ensure the entry exists
+    if (!STATE.mockScores[examId]) {
         STATE.mockScores[examId] = {
-            bestScore: scoreData.totalScore,
-            lastResults: scoreData.sectionResults,
+            bestScore: 0,
+            lastResults: [],
             date: new Date().toISOString()
         };
-    } else {
-        // Just update last results but keep best score
-        STATE.mockScores[examId].lastResults = scoreData.sectionResults;
-        STATE.mockScores[examId].lastDate = new Date().toISOString();
+    }
+
+    const current = STATE.mockScores[examId];
+    
+    if (scoreData.totalScore >= current.bestScore) {
+        current.bestScore = scoreData.totalScore;
+        current.date = new Date().toISOString();
+    }
+    
+    current.lastResults = scoreData.sectionResults;
+    current.lastDate = new Date().toISOString();
+    
+    if (scoreData.genAiReport) {
+        current.genAiReport = scoreData.genAiReport;
     }
     
     localStorage.setItem('yoda_mock_scores', JSON.stringify(STATE.mockScores));
