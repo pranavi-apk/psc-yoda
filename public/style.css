@@ -474,13 +474,15 @@ body::after {
 }
 
 .section-num {
-    font-size: 2rem;
-    font-weight: 900;
-    opacity: 0.07;
+    font-size: 0.9rem;
+    font-weight: 800;
+    opacity: 0.3;
     line-height: 1;
-    letter-spacing: -2px;
-    color: #fff;
+    color: var(--gold);
     user-select: none;
+    background: rgba(212, 175, 55, 0.1);
+    padding: 3px 8px;
+    border-radius: 6px;
 }
 
 .dash-card .card-icon {
@@ -2724,7 +2726,7 @@ body::after {
 
 .best-score-tag {
     position: absolute;
-    bottom: 15px;
+    top: 15px;
     right: 15px;
     background: rgba(56, 217, 200, 0.1);
     color: var(--primary-color);
@@ -2734,6 +2736,12 @@ body::after {
     font-weight: 800;
     border: 1px solid rgba(56, 217, 200, 0.3);
     pointer-events: none;
+    z-index: 5;
+}
+
+/* Prevent clash between section-num and best-score-tag */
+.dash-card[data-section="mock"] .dash-card-top {
+    padding-right: 80px;
 }
 
 /* Yoda Result Modal Improvements */
