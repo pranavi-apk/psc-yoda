@@ -44,6 +44,11 @@ body {
     overflow-y: auto;
 }
 
+/* Enforce global font */
+button, input, select, textarea {
+    font-family: var(--font);
+}
+
 /* ─── Animated Starfield Background ─────────────────────── */
 body::before {
     content: '';
@@ -410,14 +415,33 @@ body::after {
    ════════════════════════════════════════════════════════ */
 .dashboard-header {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 2rem;
+    text-align: center;
+    gap: 0.5rem;
+    margin-bottom: 3.5rem;
+    position: relative;
+    width: 100%;
 }
 
 .dashboard-header h2 {
-    font-size: 1.8rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.dashboard-header p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 600px;
+    margin: 0;
+}
+
+.dashboard-header .back-btn {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 #current-grade-display {

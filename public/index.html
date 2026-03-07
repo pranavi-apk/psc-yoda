@@ -89,6 +89,7 @@
     <section id="dashboard" class="screen">
         <div class="dashboard-header">
             <h2 id="dashboard-title">PSC Training Dashboard</h2>
+            <p>Master the 100-point PSC exam with targeted exercises for initials, finals, tones, and fluency.</p>
             <div class="user-stats">
                 <span id="current-grade-display">Grade 1 Target</span>
             </div>
@@ -255,11 +256,10 @@
 
     <!-- EXERCISE SCREEN -->
     <section id="exercise" class="screen">
-        <div class="exercise-header">
+        <div class="dashboard-header">
             <button class="back-btn" onclick="handleBackFromExercise()">← Back</button>
-            <h3 id="exercise-title">朗读短文</h3>
-            <!-- Listen to full sentence -->
-            <div class="listen-group">
+            <h2 id="exercise-title">朗读短文</h2>
+            <div class="listen-group" style="margin-top: 1rem;">
                 <button class="listen-btn female-btn" onclick="listenFullSentence('female')" title="Female voice">♀ Female</button>
                 <button class="listen-btn male-btn"   onclick="listenFullSentence('male')"   title="Male voice">♂ Male</button>
             </div>
@@ -361,12 +361,11 @@
 
     <!-- REPORT SCREEN -->
     <section id="report" class="screen">
-        <div class="report-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToDashboard()">← Back</button>
             <h2>📊 Session Report Card</h2>
-            <div style="display: flex; gap: 10px;">
-                <button class="export-btn" onclick="exportToPDF()">📄 Export PDF</button>
-                <button class="back-btn" onclick="goToDashboard()">← Back</button>
-            </div>
+            <p>A detailed breakdown of your pronouncing accuracy, Cantonese interference patterns, and target progress.</p>
+            <button class="export-btn" onclick="exportToPDF()" style="margin-top: 1rem;">📄 Export PDF</button>
         </div>
         <div id="report-content" class="report-content">
             <p>⏳ Generating your personal report card...</p>
@@ -389,7 +388,8 @@
         <div class="dashboard-header">
             <button class="back-btn" onclick="goToDashboard()">← Back</button>
             <h2>Flashcard Dictionary</h2>
-            <div class="fc-list-actions">
+            <p>Review your error history and track your progress through the Leitner spaced-repetition system.</p>
+            <div class="fc-list-actions" style="margin-top: 1rem;">
                 <span id="fc-list-due-badge" class="fc-progress">0 due</span>
                 <button class="cta-btn" onclick="goToFlashcardReview()" style="padding:8px 24px; font-size:0.9rem">Start Review</button>
             </div>
@@ -410,10 +410,10 @@
 
     <!-- FLASHCARD REVIEW SCREEN -->
     <section id="flashcard-review" class="screen">
-        <div class="exercise-header">
+        <div class="dashboard-header">
             <button class="back-btn" onclick="goToFlashcardList()">← List</button>
-            <h3>Flashcard Review</h3>
-            <span id="fc-progress" class="fc-progress">0/0</span>
+            <h2>Flashcard Review</h2>
+            <p id="fc-progress" class="fc-progress" style="font-weight: 700; color: var(--gold);">0/0</p>
         </div>
 
         <div class="fc-container">
@@ -459,8 +459,8 @@
         </div>
 
         <!-- Session Summary -->
-        <div id="fc-summary" class="fc-summary hidden">
-            <h3>Session Complete</h3>
+        <div id="fc-summary" class="fc-summary hidden" style="text-align: center;">
+            <h2 style="margin-bottom: 1rem;">Session Complete</h2>
             <div id="fc-summary-stats" class="fc-summary-stats"></div>
             <div class="fc-summary-actions">
                 <button class="cta-btn" onclick="goToMasteryDashboard()" style="max-width:300px">View Mastery Dashboard</button>
@@ -473,8 +473,8 @@
     <section id="mastery-dashboard" class="screen">
         <div class="dashboard-header">
             <button class="back-btn" onclick="goToDashboard()">← Back</button>
-            <h2 style="flex: 1; text-align: center;">Mastery Dashboard</h2>
-            <div style="width: 80px;"></div> <!-- Placeholder to balance flexbox -->
+            <h2>Mastery Dashboard</h2>
+            <p>Track your pinyin mastery, Leitner box distribution, and common Cantonese interference patterns.</p>
         </div>
 
         <div class="mastery-content">
@@ -526,7 +526,7 @@
         <div class="dashboard-header">
             <button class="back-btn" onclick="goToDashboard()">← Back</button>
             <h2>PSC Mock Exams</h2>
-            <p>Timed simulations of the real PSC exam.</p>
+            <p>Timed high-stakes simulations of the real PSC exam with automated scoring.</p>
         </div>
         <div class="bento-grid" id="mock-exam-list">
             <!-- Simulated cards -->
@@ -556,7 +556,7 @@
         <div class="dashboard-header">
             <button class="back-btn" onclick="goToMockExamDashboard()">← Back</button>
             <h2 id="ins-exam-title">Exam Instructions</h2>
-            <p>Please read carefully before starting the test.</p>
+            <p>Please read the following instructions carefully before starting your timed PSC simulation.</p>
         </div>
 
         <div class="exam-card-large">
@@ -587,15 +587,15 @@
 
     <!-- MOCK EXAM SESSION (Clean Exam Style) -->
     <section id="mock-exam-session" class="screen exam-mode">
-        <div class="exam-header">
-            <div class="exam-title-group">
-                <span id="exam-timer" class="timer">00:00</span>
-                <h2 id="exam-session-title">PSC Mock Exam</h2>
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="exitExam()">Exit Exam</button>
+            <div class="exam-timer-wrap" style="margin-bottom: 0.5rem;">
+                <span id="exam-timer" class="timer" style="font-size: 1.5rem; color: var(--gold);">00:00</span>
             </div>
-            <div class="exam-progress">
+            <h2 id="exam-session-title">PSC Mock Exam</h2>
+            <p class="exam-progress" style="margin-top: 0.5rem; font-weight: 600;">
                 Section <span id="exam-current-sec">1</span> of <span id="exam-total-secs">5</span>
-            </div>
-            <button class="exit-exam-btn" onclick="exitExam()">Exit Exam</button>
+            </p>
         </div>
 
         <div class="exam-content-container">
@@ -625,11 +625,8 @@
     <section id="about-psc" class="screen">
         <div class="dashboard-header">
             <button class="back-btn" onclick="switchScreen('onboarding')">← Back to Start</button>
-            <div style="text-align: center; flex: 1;">
-                <h2 style="font-family: var(--font-cn); letter-spacing: 2px;">About PSC & Yoda 优答</h2>
-                <p style="opacity: 0.6; font-size: 0.9rem;">Mastering the Putonghua Proficiency Test (PSC)</p>
-            </div>
-            <div style="width: 80px;"></div> <!-- balance -->
+            <h2>About PSC & Yoda 优答</h2>
+            <p>Mastering the Putonghua Proficiency Test (PSC) with Yoda's AI-powered training.</p>
         </div>
 
         <div class="doc-container">
@@ -809,10 +806,10 @@
 
     <!-- MATCH GAME AREA (Retroflex Match-Up) -->
     <section id="match-game" class="screen pg-mode">
-        <div class="exam-header" style="justify-content: space-between;">
-            <button class="back-btn" style="margin: 0;" onclick="goToPlaygroundDashboard()">← Quit</button>
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToPlaygroundDashboard()">← Quit</button>
             <h2>Retroflex Match-Up 🔗</h2>
-            <div id="match-score-display" class="psc-badge" style="font-size:1rem; white-space: nowrap;"></div>
+            <div id="match-score-display" class="psc-badge" style="margin-top:0.5rem"></div>
         </div>
         <p class="pg-prompt-text" style="margin-bottom: 1rem;">Match the pinyin on the left to the correct character on the right.</p>
         <div class="match-game-board">
@@ -830,10 +827,10 @@
 
     <!-- TONE GAME AREA -->
     <section id="tone-game" class="screen pg-mode">
-        <div class="exam-header" style="justify-content: space-between;">
-            <button class="back-btn" style="margin: 0;" onclick="goToPlaygroundDashboard()">← Quit</button>
-            <h2>Tone Challenge 🎵</h2>
-            <div style="width: 80px;"></div>
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToPlaygroundDashboard()">← Quit</button>
+            <h2>Tone Identification 🎵</h2>
+            <div id="tone-score-display" class="psc-badge" style="margin-top:0.5rem"></div>
         </div>
         <div class="pg-content-container">
             <p class="pg-prompt-text">Which tone did you hear?</p>
@@ -860,10 +857,10 @@
 
     <!-- MINIMAL PAIRS AREA -->
     <section id="minimal-pairs-game" class="screen pg-mode">
-        <div class="exam-header" style="justify-content: space-between;">
-            <button class="back-btn" style="margin: 0;" onclick="goToPlaygroundDashboard()">← Quit</button>
-            <h2>Minimal Pairs 🎯</h2>
-            <div style="width: 80px;"></div>
+        <div class="dashboard-header">
+            <button class="back-btn" onclick="goToPlaygroundDashboard()">← Quit</button>
+            <h2>Minimal Pairs Battle 🎯</h2>
+            <div id="minimal-score-display" class="psc-badge" style="margin-top:0.5rem"></div>
         </div>
         <div class="pg-content-container">
             <p class="pg-prompt-text">Which one did you hear?</p>
