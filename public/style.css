@@ -445,9 +445,24 @@ body::after {
 }
 
 #dashboard-grid {
-    /* 6 cards -> 3 per row = perfect 2 x 3 symmetrical grid */
-    grid-template-columns: repeat(3, 1fr);
+    /* 5 cards -> 6 column layout for reverse triangle (3 on top, 2 centered below) */
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1.5rem;
     max-width: 1000px;
+    margin: 2rem auto;
+}
+
+#dashboard-grid .dash-card:nth-child(-n+3) {
+    grid-column: span 2;
+}
+
+#dashboard-grid .dash-card:nth-child(4) {
+    grid-column: 2 / span 2;
+}
+
+#dashboard-grid .dash-card:nth-child(5) {
+    grid-column: 4 / span 2;
 }
 
 .bento-card {
@@ -1372,6 +1387,8 @@ body::after {
     .mascot-wrapper { width: 220px; height: 220px; }
     .mascot-img     { width: 190px; height: 190px; }
     .bento-grid     { grid-template-columns: 1fr 1fr; }
+    #dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    #dashboard-grid .dash-card { grid-column: auto !important; }
     .bento-card.wide { grid-column: span 2; }
     #mock-exam-list { grid-template-columns: repeat(2, 1fr) !important; }
     .metrics        { grid-template-columns: repeat(2, 1fr); }
@@ -1391,12 +1408,16 @@ body::after {
     .mascot-img     { width: 170px; height: 170px; }
     .mascot-bubble  { right: -20px; top: 0; font-size: 0.72rem; }
     .bento-grid     { grid-template-columns: 1fr 1fr; }
+    #dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    #dashboard-grid .dash-card { grid-column: auto !important; }
     .bento-card.wide { grid-column: span 2; }
     #mock-exam-list { grid-template-columns: repeat(2, 1fr) !important; }
 }
 
 @media (max-width: 500px) {
     .bento-grid     { grid-template-columns: 1fr; }
+    #dashboard-grid { grid-template-columns: 1fr; }
+    #dashboard-grid .dash-card { grid-column: auto !important; }
     .bento-card.wide { grid-column: span 1; }
     .metrics-grid   { grid-template-columns: repeat(2,1fr); }
     #mock-exam-list { grid-template-columns: 1fr !important; }
