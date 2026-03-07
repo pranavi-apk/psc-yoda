@@ -472,13 +472,47 @@ Color scores: green if >=80, orange if >=60, red if <60.`
 // Leitner box intervals in SQLite datetime offset format
 const BOX_INTERVALS = ['0 seconds', '1 hours', '8 hours', '1 days', '3 days'];
 
+let mockCards = [
+    { id: 1, character: '吃', pinyin: 'chī', translation: 'eat', box: 2, times_wrong: 3, times_correct: 5, error_type: 'Initial', is_due: 1, next_review_at: new Date().toISOString() },
+    { id: 2, character: '是', pinyin: 'shì', translation: 'is', box: 1, times_wrong: 5, times_correct: 2, error_type: 'Tone', is_due: 1, next_review_at: new Date().toISOString() },
+    { id: 3, character: '人', pinyin: 'rén', translation: 'person', box: 4, times_wrong: 1, times_correct: 10, error_type: 'Initial', is_due: 0, next_review_at: new Date(Date.now() + 86400000).toISOString() }
+];
+let nextFcId = 4;
+
 // POST /api/flashcards/collect — ingest errors from ISE results
 app.post('/api/flashcards/collect', (req, res) => {
     const { errors } = req.body;
     if (!Array.isArray(errors) || errors.length === 0) {
         return res.json({ collected: 0 });
     }
-    res.json({ collected: errors.length });
+    
+    let count = 0;
+    for (const e of errors) {
+        if (!e.character) continue;
+        const exists = mockCards.find(c => c.character === e.character);
+        if (exists) {
+            exists.times_wrong++;
+            exists.box = Math.max(exists.box - 1, 0);
+            exists.error_type = e.error_type || exists.error_type;
+            exists.is_due = 1;
+            exists.next_review_at = new Date().toISOString();
+        } else {
+            mockCards.push({
+                id: nextFcId++,
+                character: e.character,
+                pinyin: e.pinyin || '',
+                translation: '',
+                box: 0,
+                times_wrong: 1,
+                times_correct: 0,
+                error_type: e.error_type || 'sound',
+                is_due: 1,
+                next_review_at: new Date().toISOString()
+            });
+        }
+        count++;
+    }
+    res.json({ collected: count });
 });
 
 // POST /api/flashcards/backfill-pinyin — update pinyin for cards missing it
@@ -490,37 +524,45 @@ app.post('/api/flashcards/backfill-pinyin', (req, res) => {
 
 // GET /api/flashcards/all — get all cards for dictionary list
 app.get('/api/flashcards/all', (req, res) => {
-    const mockCards = [
-        { id: 1, character: '吃', pinyin: 'chī', translation: 'eat', box: 2, times_wrong: 3, times_correct: 5, error_type: 'Initial', is_due: 1, next_review_at: new Date().toISOString() },
-        { id: 2, character: '是', pinyin: 'shì', translation: 'is', box: 1, times_wrong: 5, times_correct: 2, error_type: 'Tone', is_due: 1, next_review_at: new Date().toISOString() },
-        { id: 3, character: '人', pinyin: 'rén', translation: 'person', box: 4, times_wrong: 1, times_correct: 10, error_type: 'Initial', is_due: 0, next_review_at: new Date(Date.now() + 86400000).toISOString() }
-    ];
     res.json(mockCards);
 });
 
 // GET /api/flashcards/due — get cards due for review
 app.get('/api/flashcards/due', (req, res) => {
-    const mockDueCards = [
-        { id: 1, character: '吃', pinyin: 'chī', translation: 'eat', box: 2, times_wrong: 3, times_correct: 5, error_type: 'Initial', is_due: 1, next_review_at: new Date().toISOString() },
-        { id: 2, character: '是', pinyin: 'shì', translation: 'is', box: 1, times_wrong: 5, times_correct: 2, error_type: 'Tone', is_due: 1, next_review_at: new Date().toISOString() }
-    ];
-    res.json(mockDueCards);
+    res.json(mockCards.filter(c => c.is_due));
 });
 
 // POST /api/flashcards/review — submit review result, update box
 app.post('/api/flashcards/review', (req, res) => {
     const { flashcard_id, score, error_detail } = req.body;
+    const card = mockCards.find(c => c.id == flashcard_id);
+    if (!card) return res.status(404).json({ error: 'Card not found' });
+    
     const wasCorrect = (score >= 70) ? 1 : 0;
-    res.json({ boxBefore: 1, boxAfter: wasCorrect ? 2 : 1, wasCorrect });
+    const boxBefore = card.box;
+    card.box = wasCorrect ? Math.min(card.box + 1, 4) : Math.max(card.box - 1, 0);
+    card.is_due = 0;
+    card.next_review_at = new Date(Date.now() + 86400000).toISOString();
+    
+    res.json({ boxBefore, boxAfter: card.box, wasCorrect });
 });
 
 // GET /api/flashcards/stats — mastery dashboard data
 app.get('/api/flashcards/stats', (req, res) => {
+    const byBox = [0, 0, 0, 0, 0];
+    let toneErrs = 0, initErrs = 0, finalErrs = 0;
+    mockCards.forEach(c => {
+        byBox[c.box] = (byBox[c.box] || 0) + 1;
+        if (c.error_type === 'Tone') toneErrs += c.times_wrong;
+        else if (c.error_type === 'Initial') initErrs += c.times_wrong;
+        else finalErrs += c.times_wrong;
+    });
+    
     res.json({
-        total: 120,
-        byBox: [10, 20, 30, 40, 20],
-        masteryPercent: 58.3,
-        byErrorType: { 'Tone': 45, 'Initial': 35, 'Final': 40 },
+        total: mockCards.length,
+        byBox,
+        masteryPercent: Math.round((byBox[3] * 0.75 + byBox[4]) / (mockCards.length || 1) * 100 * 10) / 10,
+        byErrorType: { 'Tone': toneErrs, 'Initial': initErrs, 'Final': finalErrs },
         recentReviews: [
             { id: 101, character: '吃', pinyin: 'chī', score: 85, was_correct: 1, reviewed_at: new Date().toISOString() },
             { id: 102, character: '是', pinyin: 'shì', score: 60, was_correct: 0, reviewed_at: new Date(Date.now() - 3600000).toISOString() }
