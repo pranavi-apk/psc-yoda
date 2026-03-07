@@ -964,11 +964,27 @@ function renderResult(xmlStr) {
         }
         console.log('[FC Collect] errorPayload:', JSON.stringify(errorPayload));
         if (errorPayload.length > 0) {
-            fetch('/api/flashcards/collect', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ errors: errorPayload })
-            }).catch(e => console.warn('Flashcard collect failed:', e));
+            if (pct < 50) {
+                fetch('/api/flashcards/collect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ errors: errorPayload })
+                }).catch(e => console.warn('Flashcard auto-collect failed:', e));
+            }
+
+            // Append manual flashcard buttons after the main diagnostic UI renders
+            setTimeout(() => {
+                const diagEl = document.getElementById('mentor-diagnostic');
+                if (diagEl) {
+                    const manualAddHtml = `<div class="manual-fc-section" style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);">
+                        <p style="font-size:0.9rem; margin-bottom:10px; opacity:0.8; color:var(--text-color);">Manually add mistakes to Flashcards:</p>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            ${errorPayload.map(e => `<button class="manual-fc-btn" style="background:rgba(255,255,255,0.1); border:none; padding:6px 12px; border-radius:12px; color:var(--text-color); cursor:pointer; list-style:none;" onclick="manualAddFlashcard('${e.character}', '${e.error_type}', '${e.pinyin}', this)">+ ${e.character}</button>`).join('')}
+                        </div>
+                    </div>`;
+                    diagEl.insertAdjacentHTML('beforeend', manualAddHtml);
+                }
+            }, 850);
         }
     }
 
@@ -982,6 +998,19 @@ function renderResult(xmlStr) {
 }
 
 // ─── Audio Helpers ────────────────────────────────────────────────────────
+
+window.manualAddFlashcard = (character, error_type, pinyin, btn) => {
+    fetch('/api/flashcards/collect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ errors: [{ character, error_type, pinyin, section: STATE.activeSection }] })
+    }).then(() => {
+        btn.textContent = '✓ Added';
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.background = 'var(--primary)';
+    }).catch(e => console.error(e));
+};
 
 function downsampleBuffer(buffer, sampleRate, outSampleRate) {
     if (outSampleRate === sampleRate) return buffer;
