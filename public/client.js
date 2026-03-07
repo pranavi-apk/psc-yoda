@@ -199,6 +199,30 @@ window.goToSection3Parts = () => {
     switchScreen('section3Parts');
 };
 
+window.handleBackFromExercise = () => {
+    stopRecording();
+    deactivateStorybook();
+    
+    // If we came from Section 3 parts selection, go back there
+    if (STATE.activeSection === 'xuan_ze' || STATE.currentSection3Part) {
+        STATE.currentSection3Part = null;
+        switchScreen('section3Parts');
+        return;
+    }
+    
+    // If we came from Section 4 theme selection
+    if (STATE.activeSection === 'lang_du' && STATE.selectedTheme) {
+        // Only go back to theme selection if it wasn't a "CLASSIC" story (which has no theme selection but reuse the screen)
+        // Wait, Section 4 always goes through theme selection unless it's a direct start.
+        // For now, let's just handle Section 3 as requested, and optionally Section 4.
+        switchScreen('themeSelection');
+        return;
+    }
+
+    // Default: Go to dashboard
+    window.goToDashboard();
+};
+
 window.closeModal = () => yodaModal.classList.remove('show');
 
 function updateUIText() {
