@@ -20,26 +20,34 @@ const PIXABAY_KEY = '54890520-5361b01bd79c68d8fb64b86d5'; // pixabay.com/api
 // ─── Google Cloud TTS Config ─────────────────────────────────────────────────
 const GOOGLE_TTS_KEY = 'AIzaSyBcJPu6AfeVPwdnWBwuDW9Wl-pBtITYQM0';
 
-// ─── Azure OpenAI Config ───────────────────────────────────────────────────
-const AZURE_CONFIG = {
-    endpoint: 'https://innochat-eus2.openai.azure.com/',
-    apiKey: '6036acce36954f1aa7923996e0278538',
-    apiVersion: '2025-01-01-preview',
-    deployment: 'gpt-5-chat-2'
+// ─── Gemini Config ───────────────────────────────────────────────────
+const GEMINI_CONFIG = {
+    endpoint: 'generativelanguage.googleapis.com',
+    path: '/v1beta/openai/chat/completions',
+    apiKey: process.env.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY_HERE',
+    model: 'gemini-2.5-flash'
 };
 
-async function callAzureOpenAI(messages, maxTokens = 600) {
-    const url = `${AZURE_CONFIG.endpoint}openai/deployments/${AZURE_CONFIG.deployment}/chat/completions?api-version=${AZURE_CONFIG.apiVersion}`;
-    const body = JSON.stringify({ messages, max_tokens: maxTokens, temperature: 0.85 });
+async function callOpenAIApi(messages, maxTokens = 600) {
+    const body = JSON.stringify({ model: GEMINI_CONFIG.model, messages, max_tokens: maxTokens, temperature: 0.85 });
     return new Promise((resolve, reject) => {
-        const req = https.request(url, {
+        const req = https.request({
+            hostname: GEMINI_CONFIG.endpoint,
+            path: GEMINI_CONFIG.path,
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'api-key': AZURE_CONFIG.apiKey }
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${GEMINI_CONFIG.apiKey}` 
+            }
         }, (res) => {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
-                try { resolve(JSON.parse(data).choices[0].message.content); }
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.error) return reject(new Error(parsed.error.message));
+                    resolve(parsed.choices[0].message.content);
+                }
                 catch (e) { reject(new Error('Parse error: ' + data)); }
             });
         });
@@ -106,7 +114,7 @@ Incorporate these specific sounds frequently into the generated content.`
     const tokenLimit = isLongSection ? 1200 : 450;
 
     try {
-        const raw = await callAzureOpenAI(messages, tokenLimit);
+        const raw = await callOpenAIApi(messages, tokenLimit);
         // Strip markdown code fences if model wraps in ```json
         let cleaned = raw.trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
         // Attempt to repair truncated JSON (add closing brackets if missing)
@@ -458,7 +466,7 @@ Color scores: green if >=80, orange if >=60, red if <60.`
     ];
 
     try {
-        const report = await callAzureOpenAI(messages, 1200);
+const report = await callOpenAIApi(messages, 1200);
         const cleaned = report.trim().replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
         res.json({ report: cleaned });
     } catch (e) {
