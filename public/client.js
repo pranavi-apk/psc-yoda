@@ -278,6 +278,13 @@ window.showMockScoreDetails = (examId, isFromExam = false) => {
     modal.classList.add('show');
 };
 
+window.closeModal = () => {
+    const modal = document.getElementById('yoda-modal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+};
+
 window.handleBackFromExercise = () => {
     stopRecording();
     deactivateStorybook();
@@ -1452,6 +1459,20 @@ function loadMockExamPart(index) {
     STATE.mockExam.timeLeft = part.timeLimit;
     updateExamTimerDisplay();
     startExamTimer();
+
+    // Update button text if it's the final section
+    const nextBtn = document.getElementById('exam-next-btn');
+    if (nextBtn) {
+        if (index === STATE.mockExam.data.sections.length - 1) {
+            nextBtn.innerText = 'Finish Exam 🏁';
+            nextBtn.style.background = 'var(--primary-color)';
+            nextBtn.style.color = '#1a1a1a';
+        } else {
+            nextBtn.innerText = 'Next Section →';
+            nextBtn.style.background = '';
+            nextBtn.style.color = '';
+        }
+    }
 }
 
 function startExamTimer() {
