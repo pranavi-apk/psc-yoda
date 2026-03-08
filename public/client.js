@@ -57,6 +57,7 @@ const screens = {
     'match-game':       document.getElementById('match-game'),
     'tone-game':        document.getElementById('tone-game'),
     'minimal-pairs-game': document.getElementById('minimal-pairs-game'),
+    'pinyin-chart-screen': document.getElementById('pinyin-chart-screen'),
     'aboutPsc':         document.getElementById('about-psc')
 };
 
@@ -2801,5 +2802,129 @@ window.selectMockChoice = (spIdx, itemIdx, optIdx, btn) => {
             b.classList.toggle('selected', i === optIdx);
         });
     }
+};
+
+/* ════════════════════════════════════════════════════════
+   PINYIN CHART LOGIC
+   ════════════════════════════════════════════════════════ */
+// We use a simplified list of finals and initials
+const pinyinInitials = ["", "b", "p", "m", "f", "d", "t", "n", "l", "g", "k", "h", "j", "q", "x", "zh", "ch", "sh", "r", "z", "c", "s", "y", "w"];
+const pinyinFinals = ["a", "o", "e", "i", "u", "v", "ai", "ei", "ui", "ao", "ou", "iu", "ie", "ve", "er", "an", "en", "in", "un", "vn", "ang", "eng", "ing", "ong"];
+
+// A basic set of valid syllables (ignoring tones)
+const validSyllables = new Set([
+     "a","o","e","ai","ei","ao","ou","er","an","en","ang","eng",
+     "ba","bo","bai","bei","bao","ban","ben","bang","beng","bi","bie","biao","bian","bin","bing",
+     "pa","po","pai","pei","pao","pou","pan","pen","pang","peng","pi","pie","piao","pian","pin","ping",
+     "ma","mo","me","mai","mei","mao","mou","man","men","mang","meng","mi","mie","miao","miu","mian","min","ming","mu",
+     "fa","fo","fei","fou","fan","fen","fang","feng","fu",
+     "da","de","dai","dei","dao","dou","dan","den","dang","deng","dong","di","die","diao","diu","dian","ding","du","duo","dui","duan","dun",
+     "ta","te","tai","tei","tao","tou","tan","tang","teng","tong","ti","tie","tiao","tian","ting","tu","tuo","tui","tuan","tun",
+     "na","ne","nai","nei","nao","nou","nan","nen","nang","neng","nong","ni","nie","niao","niu","nian","nin","niang","ning","nu","nuo","nuan","nv","nve",
+     "la","le","lai","lei","lao","lou","lan","lang","leng","long","li","lia","lie","liao","liu","lian","lin","liang","ling","lu","luo","lun","lv","lve",
+     "ga","ge","gai","gei","gao","gou","gan","gen","gang","geng","gong","gu","gua","guo","guai","gui","guan","gun","guang",
+     "ka","ke","kai","kei","kao","kou","kan","ken","kang","keng","kong","ku","kua","kuo","kuai","kui","kuan","kun","kuang",
+     "ha","he","hai","hei","hao","hou","han","hen","hang","heng","hong","hu","hua","huo","huai","hui","huan","hun","huang",
+     "ji","jia","jie","jiao","jiu","jian","jin","jiang","jing","jiong","ju","jue","juan","jun",
+     "qi","qia","qie","qiao","qiu","qian","qin","qiang","qing","qiong","qu","que","quan","qun",
+     "xi","xia","xie","xiao","xiu","xian","xin","xiang","xing","xiong","xu","xue","xuan","xun",
+     "zha","zhe","zhi","zhai","zhei","zhao","zhou","zhan","zhen","zhang","zheng","zhong","zhu","zhua","zhuo","zhuai","zhui","zhuan","zhun","zhuang",
+     "cha","che","chi","chai","chao","chou","chan","chen","chang","cheng","chong","chu","chua","chuo","chuai","chui","chuan","chun","chuang",
+     "sha","she","shi","shai","shao","shou","shan","shen","shang","sheng","shui","shuan","shun","shuang","shu","shua","shuo",
+     "re","ri","rao","rou","ran","ren","rang","reng","rong","ru","ruo","rui","ruan","run",
+     "za","ze","zi","zai","zei","zao","zou","zan","zen","zang","zeng","zong","zu","zuo","zui","zuan","zun",
+     "ca","ce","ci","cai","cao","cou","can","cen","cang","ceng","cong","cu","cuo","cui","cuan","cun",
+     "sa","se","si","sai","sao","sou","san","sen","sang","seng","song","su","suo","sui","suan","sun",
+     "ya","ye","yao","you","yan","yin","yang","ying","yong","yu","yue","yuan","yun",
+     "wa","wo","wai","wei","wan","wen","wang","weng","wu"
+]);
+
+window.goToPinyinChart = () => {
+    switchScreen('pinyin-chart-screen');
+    renderPinyinChart();
+};
+
+function renderPinyinChart() {
+    const container = document.getElementById('pinyin-chart-container');
+    if (container.innerHTML.trim() !== '' && container.innerHTML.indexOf('<table') > -1) {
+        return; // Already rendered
+    }
+    
+    let html = '<table class="pinyin-table">';
+    // Header Row (Finals)
+    html += '<tr><th></th>';
+    pinyinFinals.forEach(f => {
+        html += `<th>${f}</th>`;
+    });
+    html += '</tr>';
+    
+    // Body Rows (Initials)
+    pinyinInitials.forEach(i => {
+        html += `<tr><td>${i === "" ? "None" : i}</td>`;
+        pinyinFinals.forEach(f => {
+            let syllable = i + f;
+            if (i === "" && ["i","u","v"].includes(f[0])) {
+                // Adjust for y/w initials if needed, but our valid set covers pure a, o, e etc.
+            }
+            // Some special rules, like 'ui' is actually 'uei' but spelled 'ui', check validSyllables
+            if (validSyllables.has(syllable)) {
+                html += `<td class="pinyin-cell" onclick="openPinyinToneModal('${syllable}')">${syllable}</td>`;
+            } else {
+                html += `<td class="pinyin-cell empty-cell"></td>`;
+            }
+        });
+        html += '</tr>';
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+window.openPinyinToneModal = (syllable) => {
+    document.getElementById('tone-modal-title').innerText = syllable;
+    
+    // Tone mapping rules
+    // Vowels order of precedence: a, o, e, i, u, v
+    const toneMarks = {
+        'a': ['ā', 'á', 'ǎ', 'à'],
+        'o': ['ō', 'ó', 'ǒ', 'ò'],
+        'e': ['ē', 'é', 'ě', 'è'],
+        'i': ['ī', 'í', 'ǐ', 'ì'],
+        'u': ['ū', 'ú', 'ǔ', 'ù'],
+        'v': ['ǖ', 'ǘ', 'ǚ', 'ǜ']
+    };
+    
+    const applyTone = (syl, tone) => {
+        if (tone === 5) return syl; // neutral
+        let targetVowel = null;
+        if (syl.includes('a')) targetVowel = 'a';
+        else if (syl.includes('o')) targetVowel = 'o';
+        else if (syl.includes('e')) targetVowel = 'e';
+        else if (syl.includes('iu')) targetVowel = 'u'; // special rule: iu gets mark on u
+        else if (syl.includes('ui')) targetVowel = 'i';
+        else if (syl.includes('i')) targetVowel = 'i';
+        else if (syl.includes('u')) targetVowel = 'u';
+        else if (syl.includes('v')) targetVowel = 'v';
+        
+        if (targetVowel) {
+            return syl.replace(targetVowel, toneMarks[targetVowel][tone - 1]);
+        }
+        return syl;
+    };
+
+    let gridHtml = '';
+    for (let i = 1; i <= 4; i++) {
+        let toneSyllable = applyTone(syllable, i);
+        gridHtml += `<button class="tone-modal-btn" onclick="playPronunciation('${toneSyllable}', 0.85, VOICE_MAP.female)">
+                        ${toneSyllable}
+                        <span class="tone-num">Tone ${i}</span>
+                     </button>`;
+    }
+    
+    document.getElementById('tone-modal-grid').innerHTML = gridHtml;
+    document.getElementById('pinyin-tone-modal').classList.add('show');
+};
+
+window.closePinyinToneModal = () => {
+    document.getElementById('pinyin-tone-modal').classList.remove('show');
 };
 

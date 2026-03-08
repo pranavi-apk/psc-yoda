@@ -3441,3 +3441,130 @@ body::after {
     color: #000;
 }
 
+/* ════════════════════════════════════════════════════════
+   PINYIN CHART STYLES
+   ════════════════════════════════════════════════════════ */
+.pinyin-chart-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    overflow-x: auto;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1rem;
+}
+
+.pinyin-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: var(--font);
+    font-size: 0.9rem;
+    color: var(--text);
+    text-align: center;
+}
+
+.pinyin-table th, .pinyin-table td {
+    padding: 8px 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pinyin-table th {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--gold);
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.pinyin-table th:first-child { /* Top-left empty corner or Initials header */
+    left: 0;
+    z-index: 3;
+    background: rgba(212, 175, 55, 0.15);
+}
+
+.pinyin-table td:first-child { /* Initials Column */
+    position: sticky;
+    left: 0;
+    background: rgba(30, 30, 40, 0.95);
+    color: var(--gold);
+    font-weight: 700;
+    z-index: 1;
+}
+
+.pinyin-cell {
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.pinyin-cell:hover {
+    background: var(--gold);
+    color: #000;
+    font-weight: 700;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+    z-index: 5;
+    position: relative;
+    border-radius: 4px;
+}
+
+.pinyin-cell.empty-cell {
+    background: rgba(0, 0, 0, 0.2);
+    color: transparent;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Tone Modal Content specific */
+.tone-btn-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.tone-modal-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--gold-glow);
+    color: var(--text);
+    padding: 15px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.yoda-modal .tone-modal-btn {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    color: #1a1a1a;
+}
+
+.tone-modal-btn span.tone-num {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.yoda-modal .tone-modal-btn span.tone-num {
+    color: #666;
+}
+
+.tone-modal-btn:hover {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: var(--gold);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+}
+
+.yoda-modal .tone-modal-btn:hover {
+    color: #000;
+}
