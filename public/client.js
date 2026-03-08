@@ -181,29 +181,26 @@ function switchScreen(name) {
         }
     }
 
-    // Toggle nav menu visibility (only hide on onboarding/exams)
+    // Toggle nav menu visibility (always visible unless navbar itself is hidden)
     const navMenu = document.getElementById('main-nav');
     if (navMenu) {
-        if (name === 'onboarding') {
-            navMenu.classList.add('hidden');
-        } else {
-            navMenu.classList.remove('hidden');
-            
-            // Manage Active State
-            const navLinks = {
-                'dashboard': 'nav-home',
-                'mockExamDashboard': 'nav-mock',
-                'masteryDashboard': 'nav-mastery',
-                'playground-dashboard': 'nav-playground',
-                'aboutPsc': 'nav-about'
-            };
+        navMenu.classList.remove('hidden');
+        
+        // Manage Active State
+        const navLinks = {
+            'onboarding': 'nav-start',
+            'dashboard': 'nav-home',
+            'mockExamDashboard': 'nav-mock',
+            'masteryDashboard': 'nav-mastery',
+            'playground-dashboard': 'nav-playground',
+            'aboutPsc': 'nav-about'
+        };
 
-            document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
-            const activeId = navLinks[name];
-            if (activeId) {
-                const activeLink = document.getElementById(activeId);
-                if (activeLink) activeLink.classList.add('active');
-            }
+        document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
+        const activeId = navLinks[name];
+        if (activeId) {
+            const activeLink = document.getElementById(activeId);
+            if (activeLink) activeLink.classList.add('active');
         }
     }
 
