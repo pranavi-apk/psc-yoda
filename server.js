@@ -355,10 +355,7 @@ app.post('/api/generate-content', async (req, res) => {
 // ─── REST: Pixabay Image Search ──────────────────────────────────────────────
 app.get('/api/pixabay', (req, res) => {
     let q = req.query.q || 'nature';
-    // Append negative keywords for educational safety
-    q += ' -bikini -swimsuit -lingerie -sexy -nude';
-    
-    const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(q)}&image_type=illustration&orientation=horizontal&min_width=800&per_page=10&safesearch=true&order=popular&category=nature,backgrounds,education,places,travel`;
+    const url = `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(q)}&image_type=illustration&orientation=horizontal&min_width=800&per_page=10&safesearch=true&order=popular`;
     https.get(url, (pixRes) => {
         let data = '';
         pixRes.on('data', chunk => data += chunk);
