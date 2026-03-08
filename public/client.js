@@ -161,9 +161,43 @@ recordBtn.addEventListener('click', async () => {
 // ─── Navigation ───────────────────────────────────────────────────────────
 
 window.exportToPDF = () => {
-    // Add a helper class to body if needed, otherwise just print
-    // The @media print CSS in style.css handles the layout
-    window.print();
+    const reportElement = document.getElementById('report');
+    if (!reportElement) return;
+
+    // We want to capture the whole report section but it's best to clone it or just capture it directly
+    // Let's capture just the report content and the header text, hiding buttons temporarily
+    const backBtn = reportElement.querySelector('.back-btn');
+    const exportBtn = reportElement.querySelector('.export-btn');
+    
+    if (backBtn) backBtn.style.display = 'none';
+    if (exportBtn) {
+        exportBtn.innerText = '⏳ Generating PDF...';
+        exportBtn.style.pointerEvents = 'none';
+    }
+
+    const opt = {
+        margin:       0.5,
+        filename:     'Yoda_PSC_Report.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(reportElement).save().then(() => {
+        if (backBtn) backBtn.style.display = 'block';
+        if (exportBtn) {
+            exportBtn.innerText = '📄 Export PDF';
+            exportBtn.style.pointerEvents = 'auto';
+        }
+    }).catch(err => {
+        console.error('PDF Generation Error:', err);
+        if (backBtn) backBtn.style.display = 'block';
+        if (exportBtn) {
+            exportBtn.innerText = '❌ Error (Try Again)';
+            exportBtn.style.pointerEvents = 'auto';
+            setTimeout(() => { exportBtn.innerText = '📄 Export PDF'; }, 3000);
+        }
+    });
 };
 
 function switchScreen(name) {
