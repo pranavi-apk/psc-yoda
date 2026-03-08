@@ -1864,10 +1864,10 @@ body::after {
 
 .options-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
     width: 100%;
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
