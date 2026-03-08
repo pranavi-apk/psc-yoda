@@ -521,6 +521,10 @@ window.startExercise = async (section, part = null) => {
     document.getElementById('record-text').innerText = 'Start Recording';
     isRecording = false;
 
+    // Show listen buttons for normal sections
+    const listenGroup = document.getElementById('exercise-listen-group');
+    if (listenGroup) listenGroup.style.display = 'flex';
+
     let secKey = section;
     if (section === 'xuan_ze' && part !== null) {
         secKey += '_' + part;
@@ -544,6 +548,10 @@ window.selectTheme = async (theme) => {
     recordBtn.classList.remove('recording');
     document.getElementById('record-text').innerText = 'Start Recording';
     isRecording = false;
+
+    // Hide listen buttons specifically for Section 4 (passages)
+    const listenGroup = document.getElementById('exercise-listen-group');
+    if (listenGroup) listenGroup.style.display = 'none';
 
     // Reset diagnostics
     document.getElementById('mentor-diagnostic').classList.add('hidden');
