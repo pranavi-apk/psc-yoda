@@ -179,7 +179,7 @@ window.exportToPDF = () => {
         margin:       0.5,
         filename:     'Yoda_PSC_Report.pdf',
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        html2canvas:  { scale: 2, useCORS: true, logging: false, backgroundColor: '#05050a', onclone: (clonedDoc) => { clonedDoc.getElementById('report').style.color = '#fdfdfe'; } },
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
 
