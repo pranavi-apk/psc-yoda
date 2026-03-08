@@ -99,11 +99,14 @@ function deactivateStorybook() {
 // ─── Localization ─────────────────────────────────────────────────────────
 // Section titles per language (matching NEW section IDs from server)
 const SECTION_TITLES = {
-    dan_yin_jie: { en: '单音节字词 — Single Syllable', hk: '單音節字詞 — 單字', cn: '单音节字词' },
-    duo_yin_jie: { en: '多音节词语 — Multi-syllable',  hk: '多音節詞語 — 複詞', cn: '多音节词语' },
-    lang_du:     { en: '朗读短文 — Read Aloud',         hk: '朗讀短文 — 朗讀', cn: '朗读短文' },
-    ming_ti:     { en: '命题说话 — Free Talk',          hk: '命題說話 — 自由講', cn: '命题说话' },
-    xuan_ze:     { en: '选择判断 — Word Choice',        hk: '選擇判斷 — 選擇', cn: '选择判断' }
+    dan_yin_jie: { en: '单音节字词 — Single Syllable', hk: '單音節字詞 — 單字', cn: '单音节字词', zh: '单音节字词' },
+    duo_yin_jie: { en: '多音节词语 — Multi-syllable',  hk: '多音節詞語 — 複詞', cn: '多音节词语', zh: '多音节词语' },
+    lang_du:     { en: '朗读短文 — Read Aloud',         hk: '朗讀短文 — 朗讀', cn: '朗读短文', zh: '朗读短文' },
+    ming_ti:     { en: '命题说话 — Free Talk',          hk: '命題說話 — 自由講', cn: '命题说话', zh: '命题说话' },
+    xuan_ze:     { en: '选择判断 — Word Choice',        hk: '選擇判斷 — 選擇', cn: '选择判断', zh: '选择判断' },
+    xuan_ze_1:   { en: '选择判断 - 词语判断', hk: '選擇判斷 - 詞語判斷', cn: '选择判断 - 词语判断', zh: '选择判断 - 词语判断' },
+    xuan_ze_2:   { en: '选择判断 - 量词搭配', hk: '選擇判斷 - 量詞搭配', cn: '选择判断 - 量词搭配', zh: '选择判断 - 量词搭配' },
+    xuan_ze_3:   { en: '选择判断 - 语法判断', hk: '選擇判斷 - 語法判斷', cn: '选择判断 - 语法判断', zh: '选择判断 - 语法判断' }
 };
 
 const LOCALE = {
@@ -438,7 +441,11 @@ function updateUIText() {
     document.getElementById('welcome-title').innerText  = LOCALE[STATE.lang].welcome;
     document.getElementById('welcome-subtitle').innerText = LOCALE[STATE.lang].subtitle;
     if (STATE.activeSection) {
-        const titles = SECTION_TITLES[STATE.activeSection] || {};
+        let secKey = STATE.activeSection;
+        if (secKey === 'xuan_ze' && STATE.currentSection3Part) {
+            secKey += '_' + STATE.currentSection3Part;
+        }
+        const titles = SECTION_TITLES[secKey] || {};
         document.getElementById('exercise-title').innerText = titles[STATE.lang] || STATE.activeSection;
     }
 }
@@ -467,7 +474,11 @@ window.startExercise = async (section, part = null) => {
     document.getElementById('record-text').innerText = 'Start Recording';
     isRecording = false;
 
-    const titles = SECTION_TITLES[section] || {};
+    let secKey = section;
+    if (section === 'xuan_ze' && part !== null) {
+        secKey += '_' + part;
+    }
+    const titles = SECTION_TITLES[secKey] || {};
     document.getElementById('exercise-title').innerText = titles[STATE.lang] || section;
 
     await generateNextContent(section);
