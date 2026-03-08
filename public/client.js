@@ -179,7 +179,23 @@ window.exportToPDF = () => {
         margin:       0.5,
         filename:     'Yoda_PSC_Report.pdf',
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false, backgroundColor: '#05050a', onclone: (clonedDoc) => { clonedDoc.getElementById('report').style.color = '#fdfdfe'; } },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true, 
+            logging: false, 
+            backgroundColor: '#05050a', 
+            onclone: (clonedDoc) => { 
+                const clonedReport = clonedDoc.getElementById('report');
+                clonedReport.style.color = '#fdfdfe'; 
+                clonedReport.style.background = '#05050a';
+                
+                // Ensure buttons are completely hidden in the PDF
+                const cBackBtn = clonedReport.querySelector('.back-btn');
+                const cExportBtn = clonedReport.querySelector('.export-btn');
+                if (cBackBtn) cBackBtn.style.display = 'none';
+                if (cExportBtn) cExportBtn.style.display = 'none';
+            } 
+        },
         jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
 
