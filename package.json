@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "crypto-js": "^3.1.9-1",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "pinyin-pro": "^3.28.0",
     "socket.io": "^4.8.3",
@@ -19,4 +20,3 @@
   "author": "Pranavi",
   "license": "ISC"
 }
-

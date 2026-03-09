@@ -1,3 +1,4 @@
+// contains the prompts given to the LLM
 
 const express = require('express');
 const http = require('http');
@@ -7,6 +8,7 @@ const WebSocket = require('ws');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
+require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -15,15 +17,15 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Pixabay Config ──────────────────────────────────────────────────────────
-const PIXABAY_KEY = '54890520-5361b01bd79c68d8fb64b86d5'; // pixabay.com/api
+const PIXABAY_KEY = process.env.PIXABAY_KEY; // pixabay.com/api
 
 // ─── Google Cloud TTS Config ─────────────────────────────────────────────────
-const GOOGLE_TTS_KEY = 'AIzaSyBcJPu6AfeVPwdnWBwuDW9Wl-pBtITYQM0';
+const GOOGLE_TTS_KEY = process.env.GOOGLE_TTS_KEY;
 
 // ─── Azure OpenAI Config ───────────────────────────────────────────────────
 const AZURE_CONFIG = {
-    endpoint: 'https://innochat-eus2.openai.azure.com/',
-    apiKey: '6036acce36954f1aa7923996e0278538',
+    endpoint: process.env.AZURE_ENDPOINT,
+    apiKey: process.env.AZURE_API_KEY,
     apiVersion: '2025-01-01-preview',
     deployment: 'gpt-5-chat-2'
 };
@@ -740,9 +742,9 @@ Return ONLY a valid JSON object with NO markdown formatting, strictly following 
 const config = {
     hostUrl: "ws://ise-api-sg.xf-yun.com/v2/ise",
     host: "ise-api-sg.xf-yun.com",
-    appid: "ga8f3190",
-    apiSecret: "cfe3bd189aa401d2f18c6bf9ce3acce4",
-    apiKey: "d0e596d68d3bd4c89ec10293ceb68509",
+    appid: process.env.ISE_APPID,
+    apiSecret: process.env.ISE_API_SECRET,
+    apiKey: process.env.ISE_API_KEY,
     uri: "/v2/ise",
 };
 
